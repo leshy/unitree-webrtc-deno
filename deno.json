@@ -1,0 +1,12 @@
+{
+    "lint": {
+        "rules": {
+            "exclude": ["require-await", "ban-ts-comment"]
+        }
+    },
+    "fmt": {
+        "indentWidth": 4,
+        "useTabs": false,
+        "semiColons": false
+    }
+}
