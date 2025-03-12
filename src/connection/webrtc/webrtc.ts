@@ -1,11 +1,13 @@
 // how are we doing optional browser vs node imports?
 import {
-    MediaStreamTrack,
     RTCDataChannel,
     RTCPeerConnection,
     RTCSessionDescription,
 } from "@roamhq/wrtc"
 
+import * as signaling from "./signaling.ts"
+
+// @ts-ignore
 import md5 from "md5"
 
 import { Connection } from "../mod.ts"
@@ -23,7 +25,6 @@ export type ConfigOptional = {
 type MsgEvent = { data: string }
 
 export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
-export type ConnectionConfig = WebrtcConfig
 
 export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     implements Connection {
@@ -35,15 +36,13 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         env?: Env,
     ) {
         super(config, { autoconnect: true }, env)
-        this.log.debug(this.config, "WebRTC connection init")
         this.pc = new RTCPeerConnection()
 
-        //this.pc.addTransceiver("video", { direction: "recvonly" })
-        //this.pc.addTransceiver("audio", { direction: "sendrecv" })
+        this.pc.addTransceiver("video", { direction: "recvonly" })
+        this.pc.addTransceiver("audio", { direction: "sendrecv" })
 
         this.channel = this.pc.createDataChannel("data")
 
-        this.log.debug(this.config, "connect")
         if (this.config.autoconnect) this.connect()
     }
 
@@ -90,7 +89,7 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
             this.emit("anymsg", msg)
         }
 
-        this.pc.addEventListener("track", (event: MediaStreamTrack) => {
+        this.pc.addEventListener("track", (event) => {
             console.log("track received", event)
             this.emit("track", event)
         })
@@ -121,12 +120,23 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     private async handshake(
         sdp: RTCSessionDescription,
     ): Promise<RTCSessionDescription> {
+        return await signaling.send_sdp_to_local_peer_new_method(
+            this.config.ip,
+            sdp,
+            this.log.child({ module: "WebrtcSignaling" }),
+        )
+    }
+
+    private async proxyHandshake(
+        sdp: RTCSessionDescription,
+    ): Promise<RTCSessionDescription> {
         const ip = this.config.ip
-        this.log.debug({ ip, sdp }, `connecting to ${ip}`)
+        this.log.debug(this.config, `WebRTC starting signalling with ${ip}`)
 
         // @ts-ignore
         //sdp = cheat.mergeOffers(sdp, offers.exampleOffer2)
 
+        this.log.debug({ sdp }, `SDP offer generated`)
         const response = await fetch("http://localhost:3000/sdp", {
             method: "POST",
             headers: {

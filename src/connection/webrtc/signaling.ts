@@ -1,5 +1,7 @@
 import { RTCSessionDescription } from "@roamhq/wrtc"
+
 import * as unitreeCrypto from "./unitreeCrypto.ts"
+import * as pino from "pino"
 
 function calc_local_path_ending(data1: string): string {
     // Initialize an array of strings
@@ -42,12 +44,12 @@ export type Offer = {
 
 export async function send_sdp_to_local_peer_new_method(
     ip: string,
-    sdp: Offer,
+    sdp: RTCSessionDescription,
+    log: pino.Logger,
 ): Promise<RTCSessionDescription> {
     const url = `http://${ip}:9991/con_notify`
-    console.log("Initiating handshake with", url)
-
-    console.log("SDP IS", sdp)
+    log.debug({ sdp }, `SDP Offer`)
+    log.info(`Initiating auth with ${url}`)
 
     // we receive an RSA key and auth URL for the followup request
     const handshakeBeginResponse = await fetch(
@@ -55,10 +57,12 @@ export async function send_sdp_to_local_peer_new_method(
     )
     const { data1 } = JSON.parse(atob(await handshakeBeginResponse.text()))
 
-    console.log("received data", data1)
+    log.debug({ data1 }, `Received data`)
 
     // extract robot RSA key
     const rsaPubKeyPem = data1.substring(10, data1.length - 10)
+
+    log.debug({ rsaPubKeyPem }, `robot public RSA key decoded`)
     const pathEnding = calc_local_path_ending(data1)
 
     // generate new AES key for our session
@@ -73,7 +77,7 @@ export async function send_sdp_to_local_peer_new_method(
 
     const connect_url = `http://${ip}:9991/con_ing_${pathEnding}`
 
-    console.log(`providing SDP handshake to ${connect_url}`)
+    log.debug(`Sending Encrypted SDP Offer to ${connect_url}`)
 
     const resp = await fetch(
         new Request(connect_url, {
@@ -84,7 +88,14 @@ export async function send_sdp_to_local_peer_new_method(
 
     // AES decrypt (key generated in previous steps)
     // robot's SDP session reply
-    return JSON.parse(
+    const sessionDescription = JSON.parse(
         unitreeCrypto.aesDecrypt(aesKey, await resp.text()),
     ) as RTCSessionDescription
+
+    log.debug(
+        { sessionDescription },
+        `Auth success. Received session description`,
+    )
+
+    return sessionDescription
 }
