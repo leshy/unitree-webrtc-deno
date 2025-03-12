@@ -20,6 +20,7 @@ export type ConfigRequired = {
 
 export type ConfigOptional = {
     autoconnect: boolean
+    token?: string
 }
 
 type MsgEvent = { data: string }
@@ -122,7 +123,7 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     ): Promise<RTCSessionDescription> {
         return await signaling.send_sdp_to_local_peer_new_method(
             this.config.ip,
-            sdp,
+            this.config.token ? { ...sdp, token: this.config.token } : sdp,
             this.log.child({ module: "WebrtcSignaling" }),
         )
     }

@@ -36,12 +36,6 @@ function calc_local_path_ending(data1: string): string {
     return joinToString
 }
 
-export type Offer = {
-    type: "offer"
-    sdp: string
-    token?: string
-}
-
 export async function send_sdp_to_local_peer_new_method(
     ip: string,
     sdp: RTCSessionDescription,
