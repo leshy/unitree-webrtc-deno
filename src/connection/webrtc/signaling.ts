@@ -1,5 +1,5 @@
-import * as unitreeCrypto from "./unitreeCrypto"
 import { RTCSessionDescription } from "@roamhq/wrtc"
+import * as unitreeCrypto from "./unitreeCrypto.ts"
 
 function calc_local_path_ending(data1: string): string {
     // Initialize an array of strings

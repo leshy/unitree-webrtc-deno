@@ -16,7 +16,9 @@ this repo is using the new auth method, wrote the js referring to [legion1581 py
 
 - deno.json exist in the project only because deno lsp server is good
 
-- pure ts AES implementation pulled out of [aes-cross](https://github.com/keel/aes-cross) package. (had to modify it to remove window. references) 
+- [node-forge](https://github.com/digitalbazaar/forge) for PKCS1-V1_5 RSA
+
+- pure ts ECB AES implementation pulled out of [aes-cross](https://github.com/keel/aes-cross) package. (had to modify it to remove window. references) 
 
 # running
 

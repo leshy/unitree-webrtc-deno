@@ -7,7 +7,9 @@
     "sourceMap": true,
     "outDir": "dist",
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
  },
   "lib": ["es2020"]
 }

@@ -1,4 +1,4 @@
-import * as unitree from "./unitree/unitreeAuth"
+import * as unitree from "./unitree/auth.ts"
 import { RTCPeerConnection, RTCSessionDescription } from "@roamhq/wrtc"
 
 async function main() {
