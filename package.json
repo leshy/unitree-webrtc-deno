@@ -5,7 +5,7 @@
   "main": "dist/node.js",
   "browser": "dist/browser.js",
   "scripts": {
-    "test": "npx ts-node test.ts",
+    "test": "npx ts-node src/test.ts",
     "build": "npx ts-node build.ts",
     "build:node": "npx ts-node build.ts node",
     "build:browser": "npx ts-node build.ts browser"

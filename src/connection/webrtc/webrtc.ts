@@ -98,7 +98,6 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
                 // @ts-ignore
                 const id = msg.data?.header?.identity?.id
                 if (id) {
-                    console.log("emitting", msg.topic + id)
                     this.emit(msg.topic + id, msg)
                 }
             } else console.warn("unknown message type", msg)

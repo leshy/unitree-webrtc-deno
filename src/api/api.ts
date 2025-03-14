@@ -48,9 +48,6 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
         })
     }
 
-    //    genId(): number {
-    //       return Date.now()
-    //   }
     genId(): number {
         return (new Date().valueOf() % 2147483648) +
             Math.floor(Math.random() * 1e3)
@@ -81,7 +78,6 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
                 reject("Timeout")
             }, 5000)
 
-            console.log("WAITING FOR ", types.Topic.SPORT_RESPONSE + id)
             this.connection.once(types.Topic.SPORT_RESPONSE + id, (msg) => {
                 clearTimeout(errorTimeout)
                 resolve(msg.data)
