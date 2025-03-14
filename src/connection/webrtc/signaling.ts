@@ -62,10 +62,10 @@ export async function send_sdp_to_local_peer_new_method(
     // generate new AES key for our session
     const aesKey = unitreeCrypto.generateAesKey()
 
-    // data2 - provide aes key to the robot, encrypted with robot's rsa
-    // data1 - provide AES encrypted SDP session information
     const body = {
+        // data1 - provide AES encrypted SDP session information
         "data1": unitreeCrypto.aesEncrypt(aesKey, JSON.stringify(sdp)),
+        // data2 - provide AES key to the robot, encrypted with robot's RSA
         "data2": unitreeCrypto.rsaEncrypt(rsaPubKeyPem, aesKey),
     }
 

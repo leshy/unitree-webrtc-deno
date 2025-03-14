@@ -34,6 +34,7 @@ export enum Topic {
     LOW_CMD = "rt/lowcmd",
     WIRELESS_CONTROLLER = "rt/wirelesscontroller",
     SPORT_MOD = "rt/api/sport/request",
+    SPORT_RESPONSE = "rt/api/sport/response",
     SPORT_MOD_STATE = "rt/sportmodestate",
     LF_SPORT_MOD_STATE = "rt/lf/sportmodestate",
     BASH_REQ = "rt/api/bashrunner/request",
@@ -133,9 +134,12 @@ export enum color {
 export type Msg<TYPE, DATA> = {
     // May need empty string if undefined (common in some libraries)
     topic?: Topic
-    header?: { identity: { id: number; api_id: SportCmd } }
+    header?: { identity: { id: number; api_id?: SportCmd } }
     type: TYPE
-    data: DATA
+    data?: {
+        header?: { identity?: { id: number; api_id?: SportCmd } }
+        parameter?: any
+    } | string
 }
 
 export type ValidationMsg = Msg<

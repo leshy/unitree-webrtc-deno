@@ -1,6 +1,7 @@
 import * as types from "./types.ts"
 import { Env, Module } from "../core.ts"
 import { Connection, ConnectionConfig, Webrtc } from "../connection/mod.ts"
+export * from "./types.ts"
 
 export type OptionalConfig = {
     apiVersion: string
@@ -36,26 +37,64 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     }
 
     send<T, D>(msg: types.Msg<T, D>) {
+        this.log.info(msg, "Sending message")
         this.connection.send(msg)
     }
 
-    // TODO: copied from python, but what is this? let's review at some point
+    ready(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.connection.once("connect", () => resolve())
+            this.connection.once("error", (err) => reject(err))
+        })
+    }
+
+    //    genId(): number {
+    //       return Date.now()
+    //   }
     genId(): number {
         return (new Date().valueOf() % 2147483648) +
             Math.floor(Math.random() * 1e3)
     }
 
+    //     {
+    //     "type": "msg",
+    //     "topic": "rt/api/sport/request",
+    //     "data": {
+    //         "header": {
+    //             "identity": {
+    //                 "id": 352501830,
+    //                 "api_id": 1005
+    //             }
+    //         },
+    //         "parameter": "1005"
+    //     }
+    // }
+
     apiCall(
         endpoint: types.Topic,
         cmd: types.SportCmd,
-        //data: unknown,
-    ) {
-        // @ts-ignore
-        this.send({
-            topic: endpoint,
-            header: { identity: { id: this.genId(), api_id: cmd } },
-            type: types.MsgType.msg,
-            //parameter: data, // TODO: Complete type definition
+        //data: any,
+    ): Promise<types.Msg<unknown, unknown>> {
+        return new Promise((resolve, reject) => {
+            const id = this.genId()
+            const errorTimeout = setTimeout(() => {
+                reject("Timeout")
+            }, 5000)
+
+            console.log("WAITING FOR ", types.Topic.SPORT_RESPONSE + id)
+            this.connection.once(types.Topic.SPORT_RESPONSE + id, (msg) => {
+                clearTimeout(errorTimeout)
+                resolve(msg.data)
+            })
+
+            this.send({
+                type: types.MsgType.msg,
+                topic: endpoint,
+                data: {
+                    header: { identity: { id, api_id: cmd } },
+                    parameter: String(cmd),
+                },
+            })
         })
     }
 }

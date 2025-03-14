@@ -61,6 +61,13 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
             this.pc.localDescription as RTCSessionDescription,
         )
 
+        if (remoteSession.sdp === "reject") {
+            this.log.error(
+                "Remote peer rejected connection, is another connection already active?",
+            )
+            return process.exit(1)
+        }
+
         // Set up the data channel and event emitting for this class
         this.setupEvents()
 
@@ -72,19 +79,28 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
 
     private setupEvents() {
         this.channel.onopen = () => {
-            console.log("data channel opened")
+            this.log.info("Data channel Open")
         }
 
         this.channel.onclose = () => {
-            console.log("data channel closed")
+            this.log.error("Data channel Closed")
             this.emit("disconnected")
         }
 
         this.channel.onmessage = (event: MsgEvent) => {
+            //this.log.debug(event, "Data channel event received")
             const msg: Msg<MsgType, unknown> = JSON.parse(event.data)
+            this.log.info(msg, "Message received")
             const msgType = MsgType[msg.type]
             if (msgType) {
                 this.emit(msgType, msg)
+
+                // @ts-ignore
+                const id = msg.data?.header?.identity?.id
+                if (id) {
+                    console.log("emitting", msg.topic + id)
+                    this.emit(msg.topic + id, msg)
+                }
             } else console.warn("unknown message type", msg)
 
             this.emit("anymsg", msg)
@@ -101,21 +117,25 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     // Handle validation messages from robot and send appropriate responses
     private validationHandler = (msg: ValidationMsg) => {
         if (msg.data === "Validation Ok.") {
-            this.log.info("connection established")
-            this.emit("connected")
-
-            return console.log("Validation passed")
+            this.log.info("Validation Passed")
+            this.off("validation", this.validationHandler)
+            return this.emit("connect")
         }
-        console.log("Replying to validation query")
-        this.send({
+
+        const validationReply = {
             type: MsgType.validation,
-            data: md5(`UnitreeGo2_${msg.data}`),
+            data: Buffer.from(md5(`UnitreeGo2_${msg.data}`), "hex").toString(
+                "base64",
+            ),
             // data: encodeBase64(md5(`UnitreeGo2_${msg.data}`)),
             // data: crypto
             //     .createHash("md5")
             //     .update(`UnitreeGo2_${msg.data}`)
             //     .digest("base64"),
-        })
+        }
+
+        this.log.info(validationReply, "Replying to validation query")
+        this.send(validationReply)
     }
 
     private async handshake(
@@ -123,7 +143,9 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     ): Promise<RTCSessionDescription> {
         return await signaling.send_sdp_to_local_peer_new_method(
             this.config.ip,
-            this.config.token ? { ...sdp, token: this.config.token } : sdp,
+            this.config.token
+                ? { ...sdp, token: this.config.token } as RTCSessionDescription
+                : sdp,
             this.log.child({ module: "WebrtcSignaling" }),
         )
     }
