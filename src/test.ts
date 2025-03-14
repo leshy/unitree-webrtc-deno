@@ -1,23 +1,27 @@
-import { initEnv } from "./core.ts"
 import { API } from "./api/api.ts"
-import * as t from "./api/types.ts"
-
-const env = initEnv()
+import { SportCmd, Topic } from "./api/types.ts"
 
 async function main() {
-    const robot = new API({ ip: "10.55.1.181" }, env)
+    const args = process.argv.slice(2)
+    const ip = args[0] || "192.168.12.1"
+
+    const robot = new API({ ip })
+
     await robot.ready()
     console.log(
-        "STANDUP",
-        await robot.apiCall(t.Topic.SPORT_MOD, t.SportCmd.StandUp),
+        "stand up response",
+        await robot.apiCall(Topic.SPORT_MOD, SportCmd.StandUp),
     )
     console.log(
-        "STANDDOWN",
-        await robot.apiCall(t.Topic.SPORT_MOD, t.SportCmd.StandDown),
+        "stand down response",
+        await robot.apiCall(Topic.SPORT_MOD, SportCmd.StandDown),
     )
 }
 
-main().then(() => process.exit(0))
+main().then(() => process.exit(0)).catch((e) => {
+    console.error(e)
+    process.exit(1)
+})
 
 // await robot.turn(Math.PI / 2)
 

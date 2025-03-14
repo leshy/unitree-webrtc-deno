@@ -39,8 +39,8 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         super(config, { autoconnect: true }, env)
         this.pc = new RTCPeerConnection()
 
-        this.pc.addTransceiver("video", { direction: "recvonly" })
-        this.pc.addTransceiver("audio", { direction: "sendrecv" })
+        // this.pc.addTransceiver("video", { direction: "recvonly" })
+        // this.pc.addTransceiver("audio", { direction: "sendrecv" })
 
         this.channel = this.pc.createDataChannel("data")
 
