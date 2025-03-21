@@ -8,6 +8,7 @@ async function main() {
     const robot = new API({ ip })
 
     await robot.ready()
+
     console.log(
         "stand up response",
         await robot.apiCall(Topic.SPORT_MOD, SportCmd.StandUp),
@@ -22,6 +23,8 @@ main().then(() => process.exit(0)).catch((e) => {
     console.error(e)
     process.exit(1)
 })
+
+// just sketching out some ideas here
 
 // await robot.turn(Math.PI / 2)
 

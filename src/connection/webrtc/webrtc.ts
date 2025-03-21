@@ -61,13 +61,6 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
             this.pc.localDescription as RTCSessionDescription,
         )
 
-        if (remoteSession.sdp === "reject") {
-            this.log.error(
-                "Remote peer rejected connection, is another connection already active?",
-            )
-            return process.exit(1)
-        }
-
         // Set up the data channel and event emitting for this class
         this.setupEvents()
 
@@ -149,26 +142,31 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         )
     }
 
-    private async proxyHandshake(
-        sdp: RTCSessionDescription,
-    ): Promise<RTCSessionDescription> {
-        const ip = this.config.ip
-        this.log.debug(this.config, `WebRTC starting signalling with ${ip}`)
+    // private async proxyHandshake(
+    //     sdp: RTCSessionDescription,
+    // ): Promise<RTCSessionDescription> {
+    //     const ip = this.config.ip
+    //     this.log.debug(this.config, `WebRTC starting signalling with ${ip}`)
 
-        // @ts-ignore
-        //sdp = cheat.mergeOffers(sdp, offers.exampleOffer2)
+    //     this.log.debug({ sdp }, `SDP offer generated`)
+    //     const response = await fetch("http://localhost:3000/sdp", {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({ sdp, ip }),
+    //     })
 
-        this.log.debug({ sdp }, `SDP offer generated`)
-        const response = await fetch("http://localhost:3000/sdp", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ sdp, ip }),
-        })
+    //     if (!response.ok) {
+    //         this.log.error(
+    //             { status: response.status, statusText: response.statusText },
+    //             "HTTP Request Error",
+    //         )
+    //     }
 
-        const data = await response.json()
-        this.log.debug(data, "received handshake response")
-        return new RTCSessionDescription(data)
-    }
+    //     const data = await response.json()
+    //     this.log.debug(data, "received handshake response")
+
+    //     return new RTCSessionDescription(data)
+    // }
 }

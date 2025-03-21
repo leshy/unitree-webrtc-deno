@@ -49,6 +49,18 @@ export async function send_sdp_to_local_peer_new_method(
     const handshakeBeginResponse = await fetch(
         new Request(url, { method: "GET" }),
     )
+
+    if (!handshakeBeginResponse.ok) {
+        log.error(
+            {
+                status: handshakeBeginResponse.status,
+                statusText: handshakeBeginResponse.statusText,
+            },
+            "First HTTP Request Error",
+        )
+        throw new Error("First HTTP Request Error")
+    }
+
     const { data1 } = JSON.parse(atob(await handshakeBeginResponse.text()))
 
     log.debug({ data1 }, `Received data`)
@@ -73,23 +85,38 @@ export async function send_sdp_to_local_peer_new_method(
 
     log.debug(`Sending Encrypted SDP Offer to ${connect_url}`)
 
-    const resp = await fetch(
+    const response = await fetch(
         new Request(connect_url, {
             body: JSON.stringify(body),
             method: "POST",
         }),
     )
 
+    if (!response.ok) {
+        log.error(
+            { status: response.status, statusText: response.statusText },
+            "Second HTTP Request Error",
+        )
+        throw new Error("Second HTTP Request Error")
+    }
+
     // AES decrypt (key generated in previous steps)
     // robot's SDP session reply
     const sessionDescription = JSON.parse(
-        unitreeCrypto.aesDecrypt(aesKey, await resp.text()),
+        unitreeCrypto.aesDecrypt(aesKey, await response.text()),
     ) as RTCSessionDescription
 
     log.debug(
         { sessionDescription },
         `Auth success. Received session description`,
     )
+
+    if (sessionDescription.sdp === "reject") {
+        log.error(
+            "Remote peer rejected the session, is another connection already active?",
+        )
+        throw new Error("Remote peer rejected the session")
+    }
 
     return sessionDescription
 }
