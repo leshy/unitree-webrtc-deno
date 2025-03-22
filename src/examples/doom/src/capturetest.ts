@@ -3,7 +3,7 @@ import {
     ResizeEvent,
     TerminalInputHandler,
     TerminalMouseEvent,
-} from "./inputEvents"
+} from "./inputEvents.js"
 
 // Create input handler
 const inputHandler = new TerminalInputHandler()

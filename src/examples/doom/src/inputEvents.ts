@@ -32,27 +32,45 @@ export class TerminalInputHandler extends EventEmitter {
   constructor() {
     super()
 
-    // Initialize terminal for mouse event capture
-    process.stdout.write("\x1b[?1003h") // Enable mouse movement tracking
-    process.stdout.write("\x1b[?1006h") // Enable SGR extended mode
+    try {
+      // Check if mouse capture is disabled via environment variable
+      if (process.env['NO_MOUSE_CAPTURE'] === 'true') {
+        throw new Error("Mouse capture disabled by user configuration")
+      }
+      
+      // Initialize terminal for mouse event capture
+      process.stdout.write("\x1b[?1000h") // Enable basic mouse tracking
+      process.stdout.write("\x1b[?1002h") // Enable mouse movement tracking
+      process.stdout.write("\x1b[?1003h") // Enable ALL mouse tracking (even mouse moves without buttons)
+      process.stdout.write("\x1b[?1006h") // Enable SGR extended mode
 
-    // Set up raw mode
-    process.stdin.setRawMode(true)
-    process.stdin.resume()
+      // Check if raw mode is supported
+      if (process.stdin.isTTY && typeof process.stdin.setRawMode === 'function') {
+        // Set up raw mode
+        process.stdin.setRawMode(true)
+        process.stdin.resume()
+      } else {
+        throw new Error("Raw mode is not supported on the current process.stdin")
+      }
 
-    // Get initial terminal size
-    this.termWidth = process.stdout.columns || 80
-    this.termHeight = process.stdout.rows || 24
+      // Get initial terminal size
+      this.termWidth = process.stdout.columns || 80
+      this.termHeight = process.stdout.rows || 24
 
-    // Set up event handlers
-    this.setupResizeHandler()
-    this.setupInputHandler()
+      // Set up event handlers
+      this.setupResizeHandler()
+      this.setupInputHandler()
 
-    // Emit initial resize event
-    this.emit("resize", {
-      width: this.termWidth,
-      height: this.termHeight,
-    })
+      // Emit initial resize event
+      this.emit("resize", {
+        width: this.termWidth,
+        height: this.termHeight,
+      })
+    } catch (err) {
+      // Clean up if initialization fails
+      this.stop()
+      throw err
+    }
   }
 
   private setupResizeHandler(): void {
@@ -91,8 +109,10 @@ export class TerminalInputHandler extends EventEmitter {
 
         // Also emit a specific interrupt event
         this.emit("interrupt", ctrlCEvent)
-
-        // Don't immediately call cleanup - let the handler decide
+        
+        // Default Ctrl+C behavior after emitting events
+        this.stop();
+        process.exit(0);
         return
       }
 
@@ -127,13 +147,13 @@ export class TerminalInputHandler extends EventEmitter {
       const [, params, xStr, yStr, eventTypeChar] = match
 
       // Parse event details
-      const paramsNum = parseInt(params, 10)
+      const paramsNum = parseInt(params || "0", 10)
       const buttonState = (paramsNum >> 2) & 1 // Third bit indicates pressed state
       const moveFlag = paramsNum & 32 // 32 bit indicates motion
 
       // Parse coordinates
-      const x = parseInt(xStr, 10)
-      const y = parseInt(yStr, 10)
+      const x = parseInt(xStr || "0", 10)
+      const y = parseInt(yStr || "0", 10)
 
       // Determine event type
       const isUp = eventTypeChar === "m"
@@ -207,7 +227,21 @@ export class TerminalInputHandler extends EventEmitter {
       raw: str,
     }
 
-    // Check for known special keys
+    // Special handling for Escape key - directly exit app
+    if (str === "\x1b" || specialKeyMap[str] === "escape") {
+      keyEvent.key = "escape"
+      
+      // Emit the event
+      this.emit("key", keyEvent)
+      this.emit(`key:escape`, keyEvent)
+      
+      // Force exit application
+      this.stop()
+      process.exit(0)
+      return
+    }
+    
+    // Check for other known special keys
     if (specialKeyMap[str]) {
       keyEvent.key = specialKeyMap[str]
       this.emit("key", keyEvent)
@@ -216,7 +250,7 @@ export class TerminalInputHandler extends EventEmitter {
     }
 
     // Check for Alt+key combinations
-    if (str.length === 2 && str[0] === "\x1b") {
+    if (str.length === 2 && str[0] === "\x1b" && str[1]) {
       keyEvent.key = str[1]
       keyEvent.alt = true
       this.emit("key", keyEvent)
@@ -297,13 +331,21 @@ export class TerminalInputHandler extends EventEmitter {
     // Emit a cleanup event before disabling input tracking
     this.emit("stop")
 
-    // Disable mouse tracking
-    process.stdout.write("\x1b[?1003l") // Disable mouse movement tracking
-    process.stdout.write("\x1b[?1006l") // Disable SGR extended mode
+    try {
+      // Disable mouse tracking
+      process.stdout.write("\x1b[?1000l") // Disable basic mouse tracking
+      process.stdout.write("\x1b[?1002l") // Disable mouse movement tracking
+      process.stdout.write("\x1b[?1003l") // Disable ALL mouse tracking
+      process.stdout.write("\x1b[?1006l") // Disable SGR extended mode
 
-    // Restore terminal settings
-    process.stdin.setRawMode(false)
-    process.stdin.pause()
+      // Restore terminal settings if raw mode was set
+      if (process.stdin.isTTY && typeof process.stdin.setRawMode === 'function') {
+        process.stdin.setRawMode(false)
+        process.stdin.pause()
+      }
+    } catch (err) {
+      console.error("Error cleaning up terminal input handler:", err)
+    }
 
     // Remove all listeners
     this.removeAllListeners()
