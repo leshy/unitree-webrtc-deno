@@ -1,4 +1,6 @@
-// Custom event interface
+import { EventEmitter } from "events"
+
+// Event interfaces
 export interface TerminalMouseEvent {
   x: number
   y: number
@@ -8,12 +10,28 @@ export interface TerminalMouseEvent {
   eventType: string
 }
 
+export interface KeyboardEvent {
+  key: string
+  isSpecial: boolean
+  ctrl: boolean
+  alt: boolean
+  meta: boolean
+  raw: string
+}
+
+export interface ResizeEvent {
+  width: number
+  height: number
+}
+
 // Terminal input handler class
-export class TerminalInputHandler {
+export class TerminalInputHandler extends EventEmitter {
   private termWidth: number
   private termHeight: number
 
   constructor() {
+    super()
+
     // Initialize terminal for mouse event capture
     process.stdout.write("\x1b[?1003h") // Enable mouse movement tracking
     process.stdout.write("\x1b[?1006h") // Enable SGR extended mode
@@ -30,17 +48,24 @@ export class TerminalInputHandler {
     this.setupResizeHandler()
     this.setupInputHandler()
 
-    // Display startup info
-    console.log(`Terminal size: ${this.termWidth}x${this.termHeight}`)
-    console.log("Mouse and keyboard tracking enabled.")
-    console.log("Press Ctrl+C to exit")
+    // Emit initial resize event
+    this.emit("resize", {
+      width: this.termWidth,
+      height: this.termHeight,
+    })
   }
 
   private setupResizeHandler(): void {
     process.stdout.on("resize", () => {
       this.termWidth = process.stdout.columns
       this.termHeight = process.stdout.rows
-      console.log(`Terminal resized: ${this.termWidth}x${this.termHeight}`)
+
+      const resizeEvent: ResizeEvent = {
+        width: this.termWidth,
+        height: this.termHeight,
+      }
+
+      this.emit("resize", resizeEvent)
     })
   }
 
@@ -50,7 +75,24 @@ export class TerminalInputHandler {
 
       // Check for Ctrl+C (ASCII value 3)
       if (str.length === 1 && str.charCodeAt(0) === 3) {
-        this.cleanup()
+        // Create a keyboard event for Ctrl+C
+        const ctrlCEvent: KeyboardEvent = {
+          key: "C",
+          isSpecial: true,
+          ctrl: true,
+          alt: false,
+          meta: false,
+          raw: str,
+        }
+
+        // Emit the event so main.ts can respond
+        this.emit("key", ctrlCEvent)
+        this.emit("key:C-ctrl", ctrlCEvent)
+
+        // Also emit a specific interrupt event
+        this.emit("interrupt", ctrlCEvent)
+
+        // Don't immediately call cleanup - let the handler decide
         return
       }
 
@@ -64,9 +106,16 @@ export class TerminalInputHandler {
       }
     })
 
-    // Set up cleanup on exit
-    process.on("SIGINT", () => this.cleanup())
-    process.on("SIGTERM", () => this.cleanup())
+    // Set up cleanup on exit signals
+    process.on("SIGINT", () => {
+      this.emit("interrupt")
+      this.stop()
+    })
+
+    process.on("SIGTERM", () => {
+      this.emit("interrupt")
+      this.stop()
+    })
   }
 
   private handleMouseEvent(str: string): void {
@@ -109,17 +158,15 @@ export class TerminalInputHandler {
         eventType,
       }
 
-      // Only report movements and clicks, not every mouse event
-      if (eventType === "move" || eventType === "down" || eventType === "up") {
-        console.log(
-          `Mouse ${eventType}: x=${x}, y=${y} ` +
-            `(normalized: ${normalizedX.toFixed(3)}, ${
-              normalizedY.toFixed(3)
-            })`,
-        )
+      // Emit mouse events - but filter out unknown events
+      if (eventType !== "unknown") {
+        this.emit("mouse", mouseEvent)
+
+        // Also emit specific event types for convenience
+        this.emit(`mouse:${eventType}`, mouseEvent)
       }
     } catch (err) {
-      // Ignore parsing errors
+      this.emit("error", new Error(`Failed to parse mouse event: ${err}`))
     }
   }
 
@@ -151,15 +198,31 @@ export class TerminalInputHandler {
       "\x1b[3~": "delete",
     }
 
+    let keyEvent: KeyboardEvent = {
+      key: "",
+      isSpecial: true,
+      ctrl: false,
+      alt: false,
+      meta: false,
+      raw: str,
+    }
+
     // Check for known special keys
     if (specialKeyMap[str]) {
-      console.log(`Key pressed: ${specialKeyMap[str]}`)
+      keyEvent.key = specialKeyMap[str]
+      this.emit("key", keyEvent)
+      this.emit(`key:${keyEvent.key.replace(/\s+/g, "-")}`, keyEvent)
       return
     }
 
     // Check for Alt+key combinations
     if (str.length === 2 && str[0] === "\x1b") {
-      console.log(`Key pressed: ${str[1]} (alt)`)
+      keyEvent.key = str[1]
+      keyEvent.alt = true
+      this.emit("key", keyEvent)
+
+      // Also emit specific event
+      this.emit(`key:${keyEvent.key}-alt`, keyEvent)
       return
     }
 
@@ -167,44 +230,82 @@ export class TerminalInputHandler {
     const hex = Array.from(str).map((c) =>
       c.charCodeAt(0).toString(16).padStart(2, "0")
     ).join(" ")
-    console.log(`Unknown special key: ${hex}`)
+
+    keyEvent.key = `unknown(${hex})`
+    this.emit("key", keyEvent)
   }
 
   private handleRegularKey(str: string): void {
     const charCode = str.charCodeAt(0)
 
+    let keyEvent: KeyboardEvent = {
+      key: str,
+      isSpecial: false,
+      ctrl: false,
+      alt: false,
+      meta: false,
+      raw: str,
+    }
+
     // Control characters
     if (charCode < 32) {
       const ctrlChar = String.fromCharCode(charCode + 64)
-      console.log(`Key pressed: ${ctrlChar} (ctrl)`)
-    } // Regular printable characters
-    else {
-      console.log(`Key pressed: ${str}`)
+      keyEvent.key = ctrlChar
+      keyEvent.ctrl = true
+      keyEvent.isSpecial = true
     }
 
-    // Handle specific keys
+    // Handle common named keys
     switch (str) {
       case " ":
-        console.log("Space pressed")
+        keyEvent.key = "space"
+        keyEvent.isSpecial = true
         break
       case "\r":
-        console.log("Enter pressed")
+        keyEvent.key = "enter"
+        keyEvent.isSpecial = true
         break
       case "\t":
-        console.log("Tab pressed")
+        keyEvent.key = "tab"
+        keyEvent.isSpecial = true
         break
       case "\b":
-        console.log("Backspace pressed")
+        keyEvent.key = "backspace"
+        keyEvent.isSpecial = true
         break
+    }
+
+    // Emit the key event
+    this.emit("key", keyEvent)
+
+    // Also emit specific key event
+    if (keyEvent.isSpecial) {
+      // For special keys or control keys, emit with the key name
+      let eventName = `key:${keyEvent.key.toLowerCase()}`
+      if (keyEvent.ctrl) eventName += "-ctrl"
+      if (keyEvent.alt) eventName += "-alt"
+      if (keyEvent.meta) eventName += "-meta"
+
+      this.emit(eventName, keyEvent)
+    } else {
+      // For regular characters, emit with the character as the event name
+      this.emit(`key:${keyEvent.key}`, keyEvent)
     }
   }
 
-  public cleanup(): void {
+  public stop(): void {
+    // Emit a cleanup event before disabling input tracking
+    this.emit("stop")
+
+    // Disable mouse tracking
     process.stdout.write("\x1b[?1003l") // Disable mouse movement tracking
     process.stdout.write("\x1b[?1006l") // Disable SGR extended mode
+
+    // Restore terminal settings
     process.stdin.setRawMode(false)
     process.stdin.pause()
-    console.log("\nMouse and keyboard tracking disabled")
-    process.exit(0)
+
+    // Remove all listeners
+    this.removeAllListeners()
   }
 }
