@@ -37,7 +37,15 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     }
 
     send<T, D>(msg: types.Msg<T, D>) {
-        this.log.info(msg, "Sending message")
+        this.log.info({ payload: msg }, "Sending message")
+        // @ts-ignore
+        if (msg.data?.parameter?.constructor === Object) {
+            // @ts-ignore
+            msg.data.parameter = JSON.stringify(
+                // @ts-ignore
+                msg.data.parameter,
+            )
+        }
         this.connection.send(msg)
     }
 
@@ -53,44 +61,83 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
             Math.floor(Math.random() * 1e3)
     }
 
-    //     {
-    //     "type": "msg",
-    //     "topic": "rt/api/sport/request",
-    //     "data": {
-    //         "header": {
-    //             "identity": {
-    //                 "id": 352501830,
-    //                 "api_id": 1005
-    //             }
-    //         },
-    //         "parameter": "1005"
-    //     }
-    // }
+    // one shot command, no response expected
+    cmd(
+        topic: types.Topic,
+        data?: any,
+        msgType?: types.MsgType,
+    ) {
+        const msg: types.Msg<unknown, any> = {
+            type: msgType || types.MsgType.msg,
+            topic: topic,
+            data: data,
+        }
+        this.send(msg)
+    }
 
-    apiCall(
-        endpoint: types.Topic,
-        cmd: types.SportCmd,
-        //data: any,
+    // query-response command
+    req(
+        topic: types.Topic,
+        cmd: types.SportCmd | types.VUICmd,
+        param: Record<string, unknown> = {},
+        timeout: number = 5000,
     ): Promise<types.Msg<unknown, unknown>> {
         return new Promise((resolve, reject) => {
             const id = this.genId()
+
+            const msg: types.Msg<types.MsgType.msg, types.RequestData> = {
+                type: types.MsgType.msg,
+                topic: topic,
+                data: {
+                    header: { identity: { id, api_id: cmd } },
+                    parameter: param ? JSON.stringify(param) : "",
+                },
+            }
+
             const errorTimeout = setTimeout(() => {
                 reject("Timeout")
-            }, 5000)
+            }, timeout)
 
-            this.connection.once(types.Topic.SPORT_RESPONSE + id, (msg) => {
+            this.connection.once(String(id), (msg) => {
                 clearTimeout(errorTimeout)
                 resolve(msg.data)
             })
-
-            this.send({
-                type: types.MsgType.msg,
-                topic: endpoint,
-                data: {
-                    header: { identity: { id, api_id: cmd } },
-                    parameter: String(cmd),
-                },
-            })
+            this.send(msg)
         })
+    }
+
+    color(color: types.Color, time: number = 1) {
+        return this.req(types.Topic.VUI, types.VUICmd.Color, { color, time })
+    }
+
+    colorBlink(color: types.Color, flash_cycle: 1000, time: number = 3) {
+        return this.req(types.Topic.VUI, types.VUICmd.Color, {
+            color,
+            time,
+            flash_cycle,
+        })
+    }
+
+    lidarOff() {
+        return this.cmd(types.Topic.ULIDAR_SWITCH, "OFF")
+    }
+
+    lidarOn() {
+        return this.cmd(types.Topic.ULIDAR_SWITCH, "ON")
+    }
+
+    standup() {
+        return this.req(types.Topic.SPORT_MOD, types.SportCmd.StandUp)
+    }
+
+    sitdown() {
+        return this.req(types.Topic.SPORT_MOD, types.SportCmd.StandDown)
+    }
+
+    mov(x: number, y: number, rx: number, ry: number) {
+        return this.cmd(
+            types.Topic.WIRELESS_CONTROLLER,
+            { ly: y, lx: x, rx, ry },
+        )
     }
 }

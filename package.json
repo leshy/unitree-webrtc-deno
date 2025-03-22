@@ -6,6 +6,8 @@
   "browser": "dist/browser.js",
   "scripts": {
     "test": "npx ts-node src/test.ts",
+    "test:unit": "ava",
+    "test:watch": "ava --watch",
     "build": "npx ts-node build.ts",
     "build:node": "npx ts-node build.ts node",
     "build:browser": "npx ts-node build.ts browser"
@@ -21,9 +23,26 @@
   },
   "type": "commonjs",
   "devDependencies": {
+    "@ava/typescript": "^5.0.0",
+    "@types/express": "^5.0.1",
     "@types/node-forge": "^1.3.11",
+    "@types/sinon": "^17.0.4",
+    "ava": "^6.2.0",
     "esbuild": "^0.20.2",
+    "express": "^4.21.2",
+    "sinon": "^19.0.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "files": [
+      "src/**/*.test.ts"
+    ]
   }
 }

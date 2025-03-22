@@ -12,7 +12,7 @@ import md5 from "md5"
 
 import { Connection } from "../mod.ts"
 import { Env, Module } from "../../core.ts"
-import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
+import { Msg, MsgType, Topic, ValidationMsg } from "../../api/types.ts"
 
 export type ConfigRequired = {
     ip: string
@@ -24,6 +24,13 @@ export type ConfigOptional = {
 }
 
 type MsgEvent = { data: string }
+
+export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
+    const now = new Date()
+    const timeInStr = now.toISOString().replace("T", " ").split(".")[0]
+    const timeInNum = Math.floor(now.getTime() / 1000)
+    return { timeInStr, timeInNum }
+}
 
 export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
 
@@ -47,7 +54,13 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         if (this.config.autoconnect) this.connect()
     }
 
+    public async close() {
+        await this.channel.close()
+        await this.pc.close()
+    }
+
     public async send(msg: Msg<unknown, unknown>) {
+        if (msg.type != "heartbeat") console.log(">>>>", msg)
         this.channel.send(JSON.stringify(msg))
     }
 
@@ -83,6 +96,8 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         this.channel.onmessage = (event: MsgEvent) => {
             //this.log.debug(event, "Data channel event received")
             const msg: Msg<MsgType, unknown> = JSON.parse(event.data)
+            if (msg.type != "heartbeat") console.log("<<<<", msg)
+            console.log(msg.data)
             this.log.info(msg, "Message received")
             const msgType = MsgType[msg.type]
             if (msgType) {
@@ -92,6 +107,7 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
                 const id = msg.data?.header?.identity?.id
                 if (id) {
                     this.emit(msg.topic + id, msg)
+                    this.emit(String(id), msg)
                 }
             } else console.warn("unknown message type", msg)
 
@@ -111,6 +127,10 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         if (msg.data === "Validation Ok.") {
             this.log.info("Validation Passed")
             this.off("validation", this.validationHandler)
+            this.heartbeatLoop()
+
+            //this.send({ "type": "subscribe", "topic": Topic.MULTIPLE_STATE })
+
             return this.emit("connect")
         }
 
@@ -140,6 +160,15 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
                 : sdp,
             this.log.child({ module: "WebrtcSignaling" }),
         )
+    }
+
+    public heartbeatLoop(period: number = 2000) {
+        this.sendHeartbeat()
+        setInterval(this.sendHeartbeat, period)
+    }
+
+    public sendHeartbeat() {
+        this.send({ type: "heartbeat", data: generateHeartbeat() })
     }
 
     // private async proxyHandshake(

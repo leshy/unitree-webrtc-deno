@@ -67,6 +67,13 @@ export enum Topic {
     PROGRAMMING_ACTUATOR_CMD = "rt/programming_actuator/command",
     ASSISTANT_RECORDER = "rt/api/assistant_recorder/request",
     MOTION_SWITCHER = "rt/api/motion_switcher/request",
+    MOTION_SWITCHER_RESPONSE = "rt/api/motion_switcher/response",
+    PET = "rt/api/pet/request",
+}
+
+export const ResponseMap = {
+    [Topic.SPORT_MOD]: Topic.SPORT_RESPONSE,
+    [Topic.MOTION_SWITCHER]: Topic.MOTION_SWITCHER_RESPONSE,
 }
 
 export enum SportCmd {
@@ -121,7 +128,12 @@ export enum SportCmd {
     CrossWalk = 1051,
 }
 
-export enum color {
+export enum VUICmd {
+    Color = 1007,
+    Brightness = 1005,
+}
+
+export enum Color {
     WHITE = "white",
     RED = "red",
     YELLOW = "yellow",
@@ -131,15 +143,20 @@ export enum color {
     PURPLE = "purple",
 }
 
+export type RequestData = {
+    header?: { identity?: { id: number; api_id?: SportCmd } }
+    parameter?: Object | string
+}
+
 export type Msg<TYPE, DATA> = {
     // May need empty string if undefined (common in some libraries)
-    topic?: Topic
-    header?: { identity: { id: number; api_id?: SportCmd } }
+    topic?: Topic | ""
+    //header?: { identity: { id: number; api_id?: SportCmd } }
     type: TYPE
-    data?: {
-        header?: { identity?: { id: number; api_id?: SportCmd } }
-        parameter?: any
-    } | string
+    data?:
+        | RequestData
+        | string
+        | Record<string, unknown>
 }
 
 export type ValidationMsg = Msg<
