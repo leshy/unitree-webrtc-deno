@@ -79,7 +79,6 @@ export class TerminalInputHandler {
 
       // Parse event details
       const paramsNum = parseInt(params, 10)
-      const buttonCode = paramsNum & 3 // First two bits indicate button
       const buttonState = (paramsNum >> 2) & 1 // Third bit indicates pressed state
       const moveFlag = paramsNum & 32 // 32 bit indicates motion
 
@@ -209,6 +208,3 @@ export class TerminalInputHandler {
     process.exit(0)
   }
 }
-
-// Start the application
-const terminalInputHandler = new TerminalInputHandler()
