@@ -10,7 +10,7 @@ async function main() {
     await robot.ready()
     await robot.lidarOff()
     await robot.req(Topic.SPORT_MOD, SportCmd.BalanceStand)
-    await robot.color(Color.RED, 5)
+    await robot.color(Color.RED, 200)
     await robot.sitdown()
 
     // robot.connection.send({

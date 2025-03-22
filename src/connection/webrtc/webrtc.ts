@@ -167,9 +167,8 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         setInterval(this.sendHeartbeat, period)
     }
 
-    public sendHeartbeat() {
+    sendHeartbeat = () =>
         this.send({ type: "heartbeat", data: generateHeartbeat() })
-    }
 
     // private async proxyHandshake(
     //     sdp: RTCSessionDescription,
