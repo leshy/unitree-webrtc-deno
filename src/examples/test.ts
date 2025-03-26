@@ -1,9 +1,9 @@
-import { API } from "./api/api.ts"
-import { Color, SportCmd, Topic, VUICmd } from "./api/types.ts"
+import { API } from "../api/api.ts"
+import { Color, SportCmd, Topic, VUICmd } from "../api/types.ts"
 
 async function main() {
     const args = process.argv.slice(2)
-    const ip = args[0] || "192.168.12.1"
+    const ip = args[0] || "dog.mv"
 
     const robot = new API({ ip })
 
