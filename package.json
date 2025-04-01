@@ -8,6 +8,7 @@
     "test": "npx ts-node src/test.ts",
     "test:unit": "ava",
     "test:watch": "ava --watch",
+    "check": "npx tsc --noEmit src/**/*.ts",
     "build": "npx ts-node build.ts",
     "build:node": "npx ts-node build.ts node",
     "build:browser": "npx ts-node build.ts browser"
