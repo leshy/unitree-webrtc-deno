@@ -1,10 +1,10 @@
-import { Env, Module } from "./core.ts"
-import { Connection, ConnectionEvents } from "./connection/mod.ts"
+import { Env } from "./core.ts"
+import { AnyConnection, Connection } from "./connection/mod.ts"
 import { Msg } from "./api/types.ts"
 import { WebSocket, WebSocketServer } from "ws"
 
 export type ConfigRequired = {
-    connection: Connection
+    connection: AnyConnection
 }
 
 export type ConfigOptional = {
@@ -13,10 +13,8 @@ export type ConfigOptional = {
 
 export type ProxyServerConfig = Partial<ConfigOptional> & ConfigRequired
 
-export class ProxyServer
-    extends Module<ConfigOptional, ConfigRequired, ConnectionEvents>
-    implements Connection {
-    private connection: Connection
+export class ProxyServer extends Connection<ConfigOptional, ConfigRequired> {
+    private connection: AnyConnection
 
     constructor(config: ProxyServerConfig, env?: Env) {
         super(config, { port: 3333 }, env)

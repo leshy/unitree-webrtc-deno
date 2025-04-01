@@ -42,3 +42,5 @@ export abstract class Connection<ConfigOptional, ConfigRequired>
 }
 
 export type ConnectionConfig = WebrtcConfig
+
+export type AnyConnection = Connection<unknown, unknown>

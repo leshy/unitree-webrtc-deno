@@ -26,8 +26,8 @@ export type Env = {
 export abstract class Module<
     OPTCFG,
     REQCFG,
-    Events = Record<string, (...args: any[]) => void>,
-> extends EventEmitter2<Events> {
+    Events extends Record<string | symbol, (...args: any[]) => void> = Record<string, (...args: any[]) => void>,
+> extends EventEmitter2 {
     protected env: Env
     protected log: pino.Logger
     protected config: REQCFG & OPTCFG

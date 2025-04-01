@@ -1,6 +1,6 @@
 import * as types from "./types.ts"
 import { Env, Module } from "../core.ts"
-import { Connection, ConnectionConfig, Webrtc } from "../connection/mod.ts"
+import { AnyConnection, ConnectionConfig, Webrtc } from "../connection/mod.ts"
 export * from "./types.ts"
 
 export type OptionalConfig = {
@@ -9,7 +9,7 @@ export type OptionalConfig = {
 
 export type RequiredConfig =
     | {
-        connection: Connection
+        connection: AnyConnection
     }
     | ConnectionConfig
 
@@ -17,12 +17,12 @@ export type APIConfig = Partial<OptionalConfig> & RequiredConfig
 
 function hasConnectionInstance(
     config: APIConfig,
-): config is { connection: Connection } {
-    return (config as { connection: Connection }).connection !== undefined
+): config is { connection: AnyConnection } {
+    return (config as { connection: AnyConnection }).connection !== undefined
 }
 
 export class API extends Module<OptionalConfig, RequiredConfig> {
-    public connection: Connection
+    public connection: AnyConnection
     constructor(config: APIConfig, env?: Env) {
         super(config, { apiVersion: "1" }, env)
 
