@@ -10,7 +10,7 @@ import * as signaling from "./signaling.ts"
 // @ts-ignore
 import md5 from "md5"
 
-import { Connection } from "../mod.ts"
+import { Connection, ConnectionEvents } from "../mod.ts"
 import { Env, Module } from "../../core.ts"
 import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
 
@@ -34,7 +34,7 @@ export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
 
 export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
 
-export class Webrtc extends Module<ConfigOptional, ConfigRequired>
+export class Webrtc extends Module<ConfigOptional, ConfigRequired, ConnectionEvents>
     implements Connection {
     private pc: RTCPeerConnection
     private channel: RTCDataChannel

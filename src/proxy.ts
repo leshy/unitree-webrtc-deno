@@ -34,6 +34,8 @@ export class ProxyServer extends Module<ConfigOptional, ConfigRequired>
     }
 }
 
+// Used to circumvent slightly unreliable and slow direct webrtc->unitree connection
+// Allows immediate connections, multiple clients etc. No idea atm how to do video/audio though
 export class WebsocketProxyServer extends ProxyServer implements Connection {
     private wss: WebSocketServer
     private clients: Set<WebSocket>
@@ -41,81 +43,67 @@ export class WebsocketProxyServer extends ProxyServer implements Connection {
     constructor(config: ProxyServerConfig, env?: Env) {
         super(config, env)
         this.clients = new Set()
+        this.wss = this.listen(this.config.port)
+    }
+
+    listen(port: number): WebSocketServer {
+        const wss = new WebSocketServer({ port })
+        wss.on("listening", () => {
+            this.log.info(
+                `WebSocket server listening on port ${this.config.port}`,
+            )
+        })
+
+        wss.on("error", (error: Error) => {
+            this.log.error(
+                `WebSocket server error: ${error.message}`,
+            )
+            this.events.emit("error", error)
+        })
+
+        wss.on("connection", (ws: WebSocket) => {
+            this.log.info("Client connected to WebSocket server")
+            this.clients.add(ws)
+
+            // Forward messages from WebSocket clients to the connection
+            ws.on("message", (message: Buffer) => {
+                try {
+                    const msg = JSON.parse(message.toString()) as Msg<
+                        unknown,
+                        unknown
+                    >
+                    this.log.debug(
+                        { msg },
+                        "WebSocket message received",
+                    )
+                    super.send(msg)
+                } catch (error) {
+                    this.log.error(
+                        `Failed to parse message: ${(error as Error).message}`,
+                    )
+                }
+            })
+
+            // Handle client disconnection
+            ws.on("close", () => {
+                this.log.info(
+                    "Client disconnected from WebSocket server",
+                )
+                this.clients.delete(ws)
+            })
+
+            // Handle errors
+            ws.on("error", (error: Error) => {
+                this.log.error(
+                    `WebSocket client error: ${error.message}`,
+                )
+            })
+        })
+        return wss
     }
 
     override connect(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            try {
-                // Start WebSocket server
-                this.wss = new WebSocketServer({ port: this.config.port })
-
-                this.wss.on("listening", () => {
-                    this.log.info(
-                        `WebSocket server listening on port ${this.config.port}`,
-                    )
-                    resolve()
-                })
-
-                this.wss.on("error", (error: Error) => {
-                    this.log.error(
-                        `WebSocket server error: ${error.message}`,
-                    )
-                    this.events.emit("error", error)
-                    reject(error)
-                })
-
-                this.wss.on("connection", (ws: WebSocket) => {
-                    this.log.info("Client connected to WebSocket server")
-                    this.clients.add(ws)
-
-                    // Forward messages from WebSocket clients to the connection
-                    ws.on("message", (message: Buffer) => {
-                        try {
-                            const msg = JSON.parse(message.toString()) as Msg<
-                                unknown,
-                                unknown
-                            >
-                            this.log.debug(
-                                { msg },
-                                "WebSocket message received",
-                            )
-                            super.send(msg)
-                        } catch (error) {
-                            this.log.error(
-                                `Failed to parse message: ${
-                                    (error as Error).message
-                                }`,
-                            )
-                        }
-                    })
-
-                    // Handle client disconnection
-                    ws.on("close", () => {
-                        this.log.info(
-                            "Client disconnected from WebSocket server",
-                        )
-                        this.clients.delete(ws)
-                    })
-
-                    // Handle errors
-                    ws.on("error", (error: Error) => {
-                        this.log.error(
-                            `WebSocket client error: ${error.message}`,
-                        )
-                    })
-                })
-
-                // Connect to the underlying connection
-                super.connect().then(resolve).catch(reject)
-            } catch (error) {
-                this.log.error(
-                    `Failed to start WebSocket server: ${
-                        (error as Error).message
-                    }`,
-                )
-                reject(error)
-            }
-        })
+        return super.connect()
     }
 
     override send(msg: Msg<unknown, unknown>) {
@@ -132,16 +120,7 @@ export class WebsocketProxyServer extends ProxyServer implements Connection {
         return super.send(msg)
     }
 
-    close(): Promise<void> {
-        return new Promise((resolve) => {
-            if (this.wss) {
-                this.wss.close(() => {
-                    this.log.info("WebSocket server closed")
-                    resolve()
-                })
-            } else {
-                resolve()
-            }
-        })
+    async close(): Promise<void> {
+        this.wss.close()
     }
 }
