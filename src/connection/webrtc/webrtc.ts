@@ -12,7 +12,7 @@ import md5 from "md5"
 
 import { Connection } from "../mod.ts"
 import { Env, Module } from "../../core.ts"
-import { Msg, MsgType, Topic, ValidationMsg } from "../../api/types.ts"
+import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
 
 export type ConfigRequired = {
     ip: string
@@ -46,8 +46,8 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
         super(config, { autoconnect: true }, env)
         this.pc = new RTCPeerConnection()
 
-        // this.pc.addTransceiver("video", { direction: "recvonly" })
-        // this.pc.addTransceiver("audio", { direction: "sendrecv" })
+        this.pc.addTransceiver("video", { direction: "recvonly" })
+        this.pc.addTransceiver("audio", { direction: "sendrecv" })
 
         this.channel = this.pc.createDataChannel("data")
 
@@ -55,8 +55,8 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
     }
 
     public async close() {
-        await this.channel.close()
-        await this.pc.close()
+        this.channel.close()
+        this.pc.close()
     }
 
     public async send(msg: Msg<unknown, unknown>) {
@@ -139,11 +139,6 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
             data: Buffer.from(md5(`UnitreeGo2_${msg.data}`), "hex").toString(
                 "base64",
             ),
-            // data: encodeBase64(md5(`UnitreeGo2_${msg.data}`)),
-            // data: crypto
-            //     .createHash("md5")
-            //     .update(`UnitreeGo2_${msg.data}`)
-            //     .digest("base64"),
         }
 
         this.log.info(validationReply, "Replying to validation query")
@@ -169,32 +164,4 @@ export class Webrtc extends Module<ConfigOptional, ConfigRequired>
 
     sendHeartbeat = () =>
         this.send({ type: "heartbeat", data: generateHeartbeat() })
-
-    // private async proxyHandshake(
-    //     sdp: RTCSessionDescription,
-    // ): Promise<RTCSessionDescription> {
-    //     const ip = this.config.ip
-    //     this.log.debug(this.config, `WebRTC starting signalling with ${ip}`)
-
-    //     this.log.debug({ sdp }, `SDP offer generated`)
-    //     const response = await fetch("http://localhost:3000/sdp", {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({ sdp, ip }),
-    //     })
-
-    //     if (!response.ok) {
-    //         this.log.error(
-    //             { status: response.status, statusText: response.statusText },
-    //             "HTTP Request Error",
-    //         )
-    //     }
-
-    //     const data = await response.json()
-    //     this.log.debug(data, "received handshake response")
-
-    //     return new RTCSessionDescription(data)
-    // }
 }
