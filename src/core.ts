@@ -26,7 +26,10 @@ export type Env = {
 export abstract class Module<
     OPTCFG,
     REQCFG,
-    Events extends Record<string | symbol, (...args: any[]) => void> = Record<string, (...args: any[]) => void>,
+    Events extends Record<string | symbol, (...args: any[]) => void> = Record<
+        string,
+        (...args: any[]) => void
+    >,
 > extends EventEmitter2 {
     protected env: Env
     protected log: pino.Logger
@@ -36,7 +39,7 @@ export abstract class Module<
         protected defaultConfig: OPTCFG,
         env?: Env,
     ) {
-        super()
+        super({ wildcard: true, verboseMemoryLeak: true })
         // if unified environment is not provided, class will initialize it's own
         this.env = env ? env : initEnv()
         this.config = { ...this.defaultConfig, ...config }

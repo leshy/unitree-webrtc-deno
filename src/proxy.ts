@@ -14,48 +14,17 @@ export type ConfigOptional = {
 export type ProxyServerConfig = Partial<ConfigOptional> & ConfigRequired
 
 export class ProxyServer extends Connection<ConfigOptional, ConfigRequired> {
-    private connection: AnyConnection
+    public connection: AnyConnection
 
     constructor(config: ProxyServerConfig, env?: Env) {
         super(config, { port: 3333 }, env)
         this.connection = config.connection
     }
 
-    // Override EventEmitter methods to pass through to connection
-    on(
-        event: string | symbol,
-        listener: (...args: any[]) => void,
-    ): this {
-        this.connection.on(event, listener)
-        return this
-    }
-
-    once(
-        event: string | symbol,
-        listener: (...args: any[]) => void,
-    ): this {
-        this.connection.once(event, listener)
-        return this
-    }
-
-    off(
-        event: string | symbol,
-        listener: (...args: any[]) => void,
-    ): this {
-        this.connection.off(event, listener)
-        return this
-    }
-
-    emit(event: string | symbol, ...args: any[]): boolean {
-        return this.connection.emit(event, ...args)
-    }
-
-    removeAllListeners(event?: string | symbol): this {
-        this.connection.removeAllListeners(event)
-        return this
-    }
-
     connect(): Promise<void> {
+        this.connection.on("*", (event: string, ...args: any[]) => {
+            this.emit(event, ...args)
+        })
         return this.connection.connect()
     }
 
@@ -132,12 +101,11 @@ export class WebsocketProxyServer extends ProxyServer {
         return wss
     }
 
-    connect(): Promise<void> {
-        return super.connect()
+    override connect(): Promise<void> {
+        return this.connection.connect()
     }
 
     override send(msg: Msg<unknown, unknown>) {
-        // Forward messages from the connection to all WebSocket clients
         const message = JSON.stringify(msg)
 
         // Use Array.from to convert Set to Array for better compatibility

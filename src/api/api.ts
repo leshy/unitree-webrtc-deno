@@ -1,39 +1,24 @@
 import * as types from "./types.ts"
 import { Env, Module } from "../core.ts"
-import { AnyConnection, ConnectionConfig, Webrtc } from "../connection/mod.ts"
+import {
+    AnyConnection,
+    connectionFromConfig,
+    ConnectionOrConfig,
+} from "../connection/mod.ts"
 export * from "./types.ts"
 
 export type OptionalConfig = {
     apiVersion: string
 }
 
-export type RequiredConfig =
-    | {
-        connection: AnyConnection
-    }
-    | ConnectionConfig
-
+export type RequiredConfig = ConnectionOrConfig
 export type APIConfig = Partial<OptionalConfig> & RequiredConfig
-
-function hasConnectionInstance(
-    config: APIConfig,
-): config is { connection: AnyConnection } {
-    return (config as { connection: AnyConnection }).connection !== undefined
-}
 
 export class API extends Module<OptionalConfig, RequiredConfig> {
     public connection: AnyConnection
     constructor(config: APIConfig, env?: Env) {
         super(config, { apiVersion: "1" }, env)
-
-        // either receives already constructed connection instance
-        // or it assumes it received connection config
-        if (hasConnectionInstance(this.config)) {
-            this.connection = this.config.connection
-        } else {
-            // in the future we'll need to differentiate between connection config types
-            this.connection = new Webrtc(this.config, this.env)
-        }
+        this.connection = connectionFromConfig(this.config)
     }
 
     send<T, D>(msg: types.Msg<T, D>) {

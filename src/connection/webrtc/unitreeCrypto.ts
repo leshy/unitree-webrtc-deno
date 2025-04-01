@@ -1,4 +1,4 @@
-import forge from "node-forge"
+import * as forge from "node-forge"
 // pulled out of https://www.npmjs.com/package/aes-cross
 // needed some changes like dereferencing window object
 import { AES } from "./AES.ts"
