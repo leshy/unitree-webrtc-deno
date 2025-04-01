@@ -1,8 +1,7 @@
 import { Env, Module } from "./core.ts"
-import { Connection } from "./connection/mod.ts"
+import { Connection, ConnectionEvents } from "./connection/mod.ts"
 import { Msg } from "./api/types.ts"
 import { WebSocket, WebSocketServer } from "ws"
-import { EventEmitter } from "eventemitter3"
 
 export type ConfigRequired = {
     connection: Connection
@@ -14,15 +13,48 @@ export type ConfigOptional = {
 
 export type ProxyServerConfig = Partial<ConfigOptional> & ConfigRequired
 
-export class ProxyServer extends Module<ConfigOptional, ConfigRequired>
+export class ProxyServer
+    extends Module<ConfigOptional, ConfigRequired, ConnectionEvents>
     implements Connection {
     private connection: Connection
-    protected events: EventEmitter
 
     constructor(config: ProxyServerConfig, env?: Env) {
         super(config, { port: 3333 }, env)
         this.connection = config.connection
-        this.events = new EventEmitter()
+    }
+
+    // Override EventEmitter methods to pass through to connection
+    on(
+        event: string | symbol,
+        listener: (...args: any[]) => void,
+    ): this {
+        this.connection.on(event, listener)
+        return this
+    }
+
+    once(
+        event: string | symbol,
+        listener: (...args: any[]) => void,
+    ): this {
+        this.connection.once(event, listener)
+        return this
+    }
+
+    off(
+        event: string | symbol,
+        listener: (...args: any[]) => void,
+    ): this {
+        this.connection.off(event, listener)
+        return this
+    }
+
+    emit(event: string | symbol, ...args: any[]): boolean {
+        return this.connection.emit(event, ...args)
+    }
+
+    removeAllListeners(event?: string | symbol): this {
+        this.connection.removeAllListeners(event)
+        return this
     }
 
     connect(): Promise<void> {
@@ -36,7 +68,7 @@ export class ProxyServer extends Module<ConfigOptional, ConfigRequired>
 
 // Used to circumvent slightly unreliable and slow direct webrtc->unitree connection
 // Allows immediate connections, multiple clients etc. No idea atm how to do video/audio though
-export class WebsocketProxyServer extends ProxyServer implements Connection {
+export class WebsocketProxyServer extends ProxyServer {
     private wss: WebSocketServer
     private clients: Set<WebSocket>
 
@@ -58,7 +90,7 @@ export class WebsocketProxyServer extends ProxyServer implements Connection {
             this.log.error(
                 `WebSocket server error: ${error.message}`,
             )
-            this.events.emit("error", error)
+            // We directly log errors since they're WebSocket specific
         })
 
         wss.on("connection", (ws: WebSocket) => {
@@ -102,7 +134,7 @@ export class WebsocketProxyServer extends ProxyServer implements Connection {
         return wss
     }
 
-    override connect(): Promise<void> {
+    connect(): Promise<void> {
         return super.connect()
     }
 
