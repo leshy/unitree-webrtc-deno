@@ -1,5 +1,4 @@
-import { EventEmitter } from "eventemitter3"
-import TypedEmitter from "typed-emitter"
+import { EventEmitter2 } from "eventemitter2"
 import * as pino from "pino"
 
 // web bundler will flip this boolean
@@ -24,7 +23,11 @@ export type Env = {
     logger: pino.Logger
 }
 
-export abstract class Module<OPTCFG, REQCFG, Events = Record<string, (...args: any[]) => void>> extends EventEmitter {
+export abstract class Module<
+    OPTCFG,
+    REQCFG,
+    Events = Record<string, (...args: any[]) => void>,
+> extends EventEmitter2<Events> {
     protected env: Env
     protected log: pino.Logger
     protected config: REQCFG & OPTCFG

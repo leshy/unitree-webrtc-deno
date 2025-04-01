@@ -34,8 +34,7 @@ export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
 
 export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
 
-export class Webrtc extends Module<ConfigOptional, ConfigRequired, ConnectionEvents>
-    implements Connection {
+export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
     private pc: RTCPeerConnection
     private channel: RTCDataChannel
 
