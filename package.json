@@ -2,17 +2,17 @@
   "name": "go2-webrtc",
   "version": "1.0.0",
   "description": "",
-  "main": "src/core.js",
-  "types": "./lib/core.d.ts",
+  "main": "src/mod.js",
+  "types": "src/mod.d.ts",
   "browser": "dist/browser.js",
   "scripts": {
     "test": "npx ts-node src/test.ts",
     "test:unit": "ava",
     "test:watch": "ava --watch",
     "check": "npx tsc --noEmit --skipLibCheck",
-    "build": "npx ts-node build.ts",
-    "build:node": "npx ts-node build.ts node",
-    "build:browser": "npx ts-node build.ts browser"
+    "build": "npm run build:node && npm run build:browser",
+    "build:node": "tsc --build --verbose",
+    "build:browser": "npx ts-node build.ts"
   },
   "author": "lesh",
   "license": "ISC",
