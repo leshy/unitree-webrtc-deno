@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from "path"
-import * as signaling from "../connection/signaling/mod"
-import { Env, Module } from "../core"
+import * as signaling from "../../connection/signaling/mod"
+import { Env, Module } from "../../core"
 import express from "express"
 import bodyParser from "body-parser"
 

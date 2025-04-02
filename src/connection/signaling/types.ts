@@ -4,4 +4,4 @@ export type SignalingFunction = (
     ip: string,
     sdp: RTCSessionDescription,
     log: pino.Logger,
-) => Promise<RTCSessionDescription>
+) => Promise<RTCSessionDescriptionInit>

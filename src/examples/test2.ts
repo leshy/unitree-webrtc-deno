@@ -1,11 +1,12 @@
 import { API } from "../api/api"
+import { Webrtc } from "../connection/webrtc/webrtcNode"
 import { Color, SportCmd, Topic, VUICmd } from "../api/types"
 
 async function main() {
     const args = process.argv.slice(2)
     const ip = args[0] || "192.168.12.1"
 
-    const robot = new API({ ip })
+    const robot = new API({ connection: new Webrtc({ ip }) })
 
     await robot.ready()
 

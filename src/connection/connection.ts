@@ -38,3 +38,5 @@ export abstract class Connection<ConfigOptional, ConfigRequired>
     abstract send(msg: Msg<unknown, unknown>): void
     abstract connect(): Promise<void>
 }
+
+export type AnyConnection = Connection<unknown, unknown>

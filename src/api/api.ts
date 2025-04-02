@@ -1,24 +1,21 @@
 import * as types from "./types"
 import { Env, Module } from "../core"
-import {
-    AnyConnection,
-    connectionFromConfig,
-    ConnectionOrConfig,
-} from "../connection/mod"
+import { AnyConnection } from "../connection/mod"
 export * from "./types"
 
 export type OptionalConfig = {
     apiVersion: string
 }
 
-export type RequiredConfig = ConnectionOrConfig
+export type RequiredConfig = { connection: AnyConnection }
 export type APIConfig = Partial<OptionalConfig> & RequiredConfig
 
 export class API extends Module<OptionalConfig, RequiredConfig> {
     public connection: AnyConnection
     constructor(config: APIConfig, env?: Env) {
         super(config, { apiVersion: "1" }, env)
-        this.connection = connectionFromConfig(this.config)
+        //        this.connection = connectionFromConfig(this.config)
+        this.connection = this.config.connection
     }
 
     send<T, D>(msg: types.Msg<T, D>) {
@@ -101,6 +98,11 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
             time,
             flash_cycle,
         })
+    }
+
+    enableVideo() {
+        this.cmd(types.Topic.VIDEO, "ON")
+        //{"type":"vid","topic":"","data":"on"}
     }
 
     lidarOff() {

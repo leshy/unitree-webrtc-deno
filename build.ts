@@ -2,7 +2,7 @@ import * as esbuild from "esbuild"
 
 // Common build options
 const commonOptions: esbuild.BuildOptions = {
-  entryPoints: ["src/mod.ts"],
+  entryPoints: ["src/examples/browser/signalingClient.ts"],
   bundle: true,
   minify: true,
   sourcemap: true,
@@ -17,9 +17,9 @@ async function buildBrowser() {
   try {
     await esbuild.build({
       ...commonOptions,
-      outfile: "dist/browser.js",
+      outfile: "src/examples/browser/static/signalingClient.js",
       platform: "browser",
-      format: "esm",
+      format: "iife",
       define: {
         "runningInBrowser": "true",
         "global": "window", // Handle cases where code might reference global
@@ -28,7 +28,7 @@ async function buildBrowser() {
       external: [
         "@roamhq/wrtc",
         "pino/file",
-        "node-forge",
+        //        "node-forge",
       ],
       // No need for aliases since browsers have native WebRTC support
     })

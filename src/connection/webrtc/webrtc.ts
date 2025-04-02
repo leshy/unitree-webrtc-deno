@@ -1,18 +1,9 @@
-// how are we doing optional browser vs node imports?
-import {
-    RTCDataChannel,
-    RTCPeerConnection,
-    RTCSessionDescription,
-} from "@roamhq/wrtc"
-
-import * as signaling from "../signaling/mod"
-
-// @ts-ignore
-import md5 from "md5"
-
-import { Connection, ConnectionEvents } from "../mod"
-import { Env, Module } from "../../core"
+import { Connection } from "../mod"
+import { Env } from "../../core"
 import { Msg, MsgType, ValidationMsg } from "../../api/types"
+import { SignalingFunction } from "../signaling/types"
+//@ts-ignore
+import md5 from "md5"
 
 export type ConfigRequired = {
     ip: string
@@ -20,34 +11,45 @@ export type ConfigRequired = {
 
 export type ConfigOptional = {
     autoconnect: boolean
-    signalingFunction: signaling.SignalingFunction
+    signalingFunction: SignalingFunction
     token?: string
 }
 
+export type Config = ConfigRequired & Partial<ConfigOptional>
+
 type MsgEvent = { data: string }
 
-export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
-    const now = new Date()
-    const timeInStr = now.toISOString().replace("T", " ").split(".")[0]
-    const timeInNum = Math.floor(now.getTime() / 1000)
-    return { timeInStr, timeInNum }
+export type EnvPolyfill = {
+    rtcPeerConnection: RTCPeerConnection
+    signalingFunction: SignalingFunction
 }
 
-export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
+function md5b64(targetString: string): string {
+    const hexString = md5(targetString)
+    let binary = ""
+    for (let i = 0; i < hexString.length; i += 2) {
+        const byte = parseInt(hexString.substring(i, i + 2), 16)
+        binary += String.fromCharCode(byte)
+    }
+    return btoa(binary)
+}
 
-export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
-    private pc: RTCPeerConnection
+export abstract class Webrtc
+    extends Connection<ConfigOptional, ConfigRequired> {
+    public pc: RTCPeerConnection
     private channel: RTCDataChannel
-
     constructor(
+        private polyfill: EnvPolyfill,
         config: WebrtcConfig,
         env?: Env,
     ) {
         super(config, {
             autoconnect: true,
-            signalingFunction: signaling.send_sdp_to_local_peer_new_method,
+            signalingFunction: polyfill.signalingFunction,
         }, env)
-        this.pc = new RTCPeerConnection()
+
+        // @ts-ignore
+        this.pc = new polyfill.rtcPeerConnection()
 
         this.pc.addTransceiver("video", { direction: "recvonly" })
         this.pc.addTransceiver("audio", { direction: "sendrecv" })
@@ -139,9 +141,7 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
 
         const validationReply = {
             type: MsgType.validation,
-            data: Buffer.from(md5(`UnitreeGo2_${msg.data}`), "hex").toString(
-                "base64",
-            ),
+            data: md5b64(`UnitreeGo2_${msg.data}`),
         }
 
         this.log.info(validationReply, "Replying to validation query")
@@ -150,8 +150,8 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
 
     private async handshake(
         sdp: RTCSessionDescription,
-    ): Promise<RTCSessionDescription> {
-        return await signaling.send_sdp_to_local_peer_new_method(
+    ): Promise<RTCSessionDescriptionInit> {
+        return await this.config.signalingFunction(
             this.config.ip,
             this.config.token
                 ? { ...sdp, token: this.config.token } as RTCSessionDescription
@@ -168,3 +168,12 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
     sendHeartbeat = () =>
         this.send({ type: "heartbeat", data: generateHeartbeat() })
 }
+
+export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
+    const now = new Date()
+    const timeInStr = now.toISOString().replace("T", " ").split(".")[0]
+    const timeInNum = Math.floor(now.getTime() / 1000)
+    return { timeInStr, timeInNum }
+}
+
+export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
