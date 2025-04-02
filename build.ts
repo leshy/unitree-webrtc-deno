@@ -2,7 +2,7 @@ import * as esbuild from "esbuild"
 
 // Common build options
 const commonOptions: esbuild.BuildOptions = {
-  entryPoints: ["src/core.ts"],
+  entryPoints: ["src/mod.ts"],
   bundle: true,
   minify: true,
   sourcemap: true,
@@ -28,7 +28,7 @@ async function buildBrowser() {
       external: [
         "@roamhq/wrtc",
         "pino/file",
-        //        "node-forge",
+        "node-forge",
       ],
       // No need for aliases since browsers have native WebRTC support
     })

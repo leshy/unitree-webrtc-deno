@@ -4,7 +4,8 @@ import {
     RTCPeerConnection,
     RTCSessionDescription,
 } from "@roamhq/wrtc"
-import * as signaling from "./signaling"
+
+import * as signaling from "../signaling/mod"
 
 // @ts-ignore
 import md5 from "md5"
@@ -19,6 +20,7 @@ export type ConfigRequired = {
 
 export type ConfigOptional = {
     autoconnect: boolean
+    signalingFunction: signaling.SignalingFunction
     token?: string
 }
 
@@ -33,8 +35,6 @@ export function generateHeartbeat(): { timeInStr: string; timeInNum: number } {
 
 export type WebrtcConfig = ConfigRequired & Partial<ConfigOptional>
 
-console.log("CONNECTION IS", Connection)
-
 export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
     private pc: RTCPeerConnection
     private channel: RTCDataChannel
@@ -43,7 +43,10 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
         config: WebrtcConfig,
         env?: Env,
     ) {
-        super(config, { autoconnect: true }, env)
+        super(config, {
+            autoconnect: true,
+            signalingFunction: signaling.send_sdp_to_local_peer_new_method,
+        }, env)
         this.pc = new RTCPeerConnection()
 
         this.pc.addTransceiver("video", { direction: "recvonly" })
