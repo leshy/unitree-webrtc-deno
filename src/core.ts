@@ -1,5 +1,8 @@
 import { EventEmitter2 } from "eventemitter2"
 import * as pino from "pino"
+export * as api from "./api/api.ts"
+export * as connection from "./connection/mod.ts"
+export * as webrtc from "./connection/webrtc/webrtc.ts"
 
 // web bundler will flip this boolean
 export const runningInBrowser = false

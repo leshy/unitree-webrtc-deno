@@ -8,8 +8,11 @@
     "outDir": "dist",
     "skipLibCheck": true,
     "strict": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist/types",
+    "allowImportingTsExtensions": true
  },
-  "lib": ["es2020"]
+  "lib": ["es2020"],
+  "include": ["src/**/*"]
 }
