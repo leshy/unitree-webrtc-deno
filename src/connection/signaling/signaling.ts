@@ -32,7 +32,6 @@ function calc_local_path_ending(data1: string): string {
 
     // Convert arrayList to a string
     const joinToString = arrayList.join("")
-
     return joinToString
 }
 
