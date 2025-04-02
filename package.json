@@ -5,6 +5,9 @@
   "main": "dist/mod.js",
   "types": "dist/mod.d.ts",
   "browser": "dist/browser.js",
+  "bin": {
+    "go2-signaling-server": "./dist/examples/signalingServer.js"
+  },
   "scripts": {
     "test": "npx ts-node src/test.ts",
     "test:unit": "ava",
@@ -12,7 +15,8 @@
     "check": "npx tsc --noEmit --skipLibCheck",
     "build": "npm run build:node && npm run build:browser",
     "build:node": "tsc --build --verbose",
-    "build:browser": "npx ts-node build.ts"
+    "build:browser": "npx ts-node build.ts",
+    "signaling-server": "npx ts-node src/examples/signalingServer.ts"
   },
   "author": "lesh",
   "license": "ISC",

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import path from "path"
 import * as signaling from "../connection/signaling/mod"
 import { Env, Module } from "../core"
@@ -6,7 +7,7 @@ import bodyParser from "body-parser"
 
 export type OptionalConfig = {
     port: number
-    staticDir: string
+    staticDir: string | false
 }
 
 export type RequiredConfig = {}
@@ -20,7 +21,7 @@ export class SignalingServer
     constructor(config?: SignalingServerConfig, env?: Env) {
         super(
             config || {},
-            { port: 3000, staticDir: path.join(__dirname, "static") },
+            { port: 3000, staticDir: false },
             env,
         )
         this.log.info(this.config, "starting server")
@@ -40,14 +41,43 @@ export class SignalingServer
 
         this.app.use(bodyParser.json())
 
-        this.app.use(express.static(this.config.staticDir, {
-            dotfiles: "deny",
-            etag: true,
-            extensions: ["html"],
-            index: ["index.html"],
-            maxAge: "1d",
-        }))
+        if (this.config.staticDir !== false) {
+            this.app.use(express.static(this.config.staticDir, {
+                dotfiles: "deny",
+                etag: true,
+                extensions: ["html"],
+                index: ["index.html"],
+                maxAge: "1d",
+            }))
+        }
+
+        this.app.post("/signal", async (req, res) => {
+            this.log.info(req.body, "received signaling request")
+            const response = await signaling.send_sdp_to_local_peer_new_method(
+                req.body.ip,
+                req.body.sdp,
+                this.log,
+            )
+            res.json(response)
+        })
     }
 }
 
-const server = new SignalingServer()
+// Only create server instance if this file is executed directly (not imported as a module)
+if (require.main === module) {
+    const args = process.argv.slice(2)
+    const config: SignalingServerConfig = {}
+
+    // Parse command line arguments
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === "--port" && i + 1 < args.length) {
+            config.port = parseInt(args[i + 1], 10)
+            i++
+        } else if (args[i] === "--staticDir" && i + 1 < args.length) {
+            config.staticDir = args[i + 1]
+            i++
+        }
+    }
+
+    new SignalingServer(config)
+}
