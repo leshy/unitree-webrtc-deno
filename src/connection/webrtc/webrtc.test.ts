@@ -1,4 +1,4 @@
-import { generateHeartbeat } from "./webrtc.ts"
+import { generateHeartbeat } from "./webrtc"
 import test from "ava"
 
 test("heartbeat", async (t) => {

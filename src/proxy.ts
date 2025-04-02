@@ -1,6 +1,6 @@
-import { Env } from "./core.ts"
-import { AnyConnection, Connection } from "./connection/mod.ts"
-import { Msg } from "./api/types.ts"
+import { Env } from "./core"
+import { AnyConnection, Connection } from "./connection/mod"
+import { Msg } from "./api/types"
 import { WebSocket, WebSocketServer } from "ws"
 
 export type ConfigRequired = {

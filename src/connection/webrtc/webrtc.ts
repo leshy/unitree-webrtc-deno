@@ -4,15 +4,14 @@ import {
     RTCPeerConnection,
     RTCSessionDescription,
 } from "@roamhq/wrtc"
-
-import * as signaling from "./signaling.ts"
+import * as signaling from "./signaling"
 
 // @ts-ignore
 import md5 from "md5"
 
-import { Connection, ConnectionEvents } from "../mod.ts"
-import { Env, Module } from "../../core.ts"
-import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
+import { Connection, ConnectionEvents } from "../mod"
+import { Env, Module } from "../../core"
+import { Msg, MsgType, ValidationMsg } from "../../api/types"
 
 export type ConfigRequired = {
     ip: string

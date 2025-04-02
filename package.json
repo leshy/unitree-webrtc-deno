@@ -2,8 +2,8 @@
   "name": "go2-webrtc",
   "version": "1.0.0",
   "description": "",
-  "main": "src/mod.js",
-  "types": "src/mod.d.ts",
+  "main": "dist/mod.js",
+  "types": "dist/mod.d.ts",
   "browser": "dist/browser.js",
   "scripts": {
     "test": "npx ts-node src/test.ts",

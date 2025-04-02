@@ -1,11 +1,11 @@
-import * as types from "./types.ts"
-import { Env, Module } from "../core.ts"
+import * as types from "./types"
+import { Env, Module } from "../core"
 import {
     AnyConnection,
     connectionFromConfig,
     ConnectionOrConfig,
-} from "../connection/mod.ts"
-export * from "./types.ts"
+} from "../connection/mod"
+export * from "./types"
 
 export type OptionalConfig = {
     apiVersion: string

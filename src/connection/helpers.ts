@@ -1,5 +1,5 @@
-import { Webrtc, WebrtcConfig } from "./webrtc/webrtc.ts"
-import { Connection } from "./connection.ts"
+import { Webrtc, WebrtcConfig } from "./webrtc/webrtc"
+import { Connection } from "./connection"
 
 export type AnyConnection = Connection<unknown, unknown>
 export type ConnectionConfig = WebrtcConfig

@@ -1,6 +1,6 @@
 import { RTCSessionDescription } from "@roamhq/wrtc"
 
-import * as unitreeCrypto from "./unitreeCrypto.ts"
+import * as unitreeCrypto from "./unitreeCrypto"
 import * as pino from "pino"
 
 function calc_local_path_ending(data1: string): string {
