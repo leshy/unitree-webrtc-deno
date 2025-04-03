@@ -1,7 +1,7 @@
-import * as types from "./types"
-import { Env, Module } from "../core"
-import { AnyConnection } from "../connection/mod"
-export * from "./types"
+import * as types from "./types.ts"
+import { Env, Module } from "../core.ts"
+import { AnyConnection } from "../connection/mod.ts"
+export * from "./types.ts"
 
 export type OptionalConfig = {
     apiVersion: string
@@ -46,10 +46,10 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     // one shot command, no response expected
     cmd(
         topic: types.Topic,
-        data?: any,
+        data?: unknown,
         msgType?: types.MsgType,
     ) {
-        const msg: types.Msg<unknown, any> = {
+        const msg: types.Msg<unknown, unknown> = {
             type: msgType || types.MsgType.msg,
             topic: topic,
             data: data,
@@ -105,11 +105,19 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     }
 
     subscribe(topic: types.Topic) {
-        this.cmd({ topic, type: types.MsgType.subscribe })
+        this.cmd(
+            topic,
+            undefined,
+            types.MsgType.subscribe,
+        )
     }
 
     unsubscribe(topic: types.Topic) {
-        this.cmd({ topic, type: types.MsgType.unsubscribe })
+        this.cmd(
+            topic,
+            undefined,
+            types.MsgType.unsubscribe,
+        )
     }
 
     lidarOff() {

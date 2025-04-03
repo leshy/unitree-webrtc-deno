@@ -1,7 +1,7 @@
-import * as forge from "node-forge"
+import * as forge from "npm:node-forge"
 // pulled out of https://www.npmjs.com/package/aes-cross
 // needed some changes like dereferencing window object
-import { AES } from "./AES"
+import { AES } from "./AES.ts"
 
 // SubtleCrypto that we can reach in js env doesn't support ECB aes
 export function aesEncrypt(key: string, text: string): string {

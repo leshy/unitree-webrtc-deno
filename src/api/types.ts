@@ -1,4 +1,7 @@
-export function key(enumType: any, enumValue: number): string | undefined {
+export function key(
+    enumType: Record<string, number>,
+    enumValue: number,
+): string | undefined {
     return Object.keys(enumType).find((key) => enumType[key] === enumValue)
 }
 
@@ -146,7 +149,7 @@ export enum Color {
 
 export type RequestData = {
     header?: { identity?: { id: number; api_id?: SportCmd } }
-    parameter?: Object | string
+    parameter?: Record<string, unknown> | string
 }
 
 export type Msg<TYPE, DATA> = {

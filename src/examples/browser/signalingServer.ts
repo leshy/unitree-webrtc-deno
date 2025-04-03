@@ -1,21 +1,25 @@
 #!/usr/bin/env node
-import path from "path"
+// Path module not used
 import * as signaling from "../../connection/signaling/mod"
 import { Env, Module } from "../../core"
 import express from "express"
 import bodyParser from "body-parser"
+import process from "node:process"
 
 export type OptionalConfig = {
     port: number
     staticDir: string | false
 }
 
-export type RequiredConfig = {}
+export type RequiredConfig = Record<string | number | symbol, never>
 
 export type SignalingServerConfig = Partial<OptionalConfig> & RequiredConfig
 
-export class SignalingServer
-    extends Module<OptionalConfig, RequiredConfig, {}> {
+export class SignalingServer extends Module<
+    OptionalConfig,
+    RequiredConfig,
+    Record<string | number | symbol, never>
+> {
     private app: express.Application
 
     constructor(config?: SignalingServerConfig, env?: Env) {
@@ -34,7 +38,7 @@ export class SignalingServer
     }
 
     private setupServer() {
-        this.app.use((req, res, next) => {
+        this.app.use((req, _res, next) => {
             this.log.info(req.method + " " + req.url)
             next()
         })

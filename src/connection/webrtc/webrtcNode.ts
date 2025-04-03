@@ -1,7 +1,6 @@
-import { Env } from "../../core"
-import * as webrtc from "./webrtc"
-import { send_sdp_to_local_peer_new_method } from "../signaling/signaling"
-import { RTCPeerConnection as polyFillRTCPeerConnection } from "@roamhq/wrtc"
+import { Env } from "../../core.ts"
+import * as webrtc from "./webrtc.ts"
+import { send_sdp_to_local_peer_new_method } from "../signaling/signaling.ts"
 
 export class Webrtc extends webrtc.Webrtc {
     constructor(
@@ -10,8 +9,7 @@ export class Webrtc extends webrtc.Webrtc {
     ) {
         super(
             {
-                rtcPeerConnection:
-                    polyFillRTCPeerConnection as unknown as RTCPeerConnection,
+                rtcPeerConnection: RTCPeerConnection,
                 signalingFunction: send_sdp_to_local_peer_new_method,
             },
             config,

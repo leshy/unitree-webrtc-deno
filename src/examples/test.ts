@@ -1,6 +1,7 @@
-import { API } from "../api/api"
-import { Webrtc } from "../connection/webrtc/webrtcNode"
-import { Color, SportCmd, Topic, VUICmd } from "../api/types"
+import { API } from "../api/api.ts"
+import { Webrtc } from "../connection/webrtc/webrtcNode.ts"
+import { Color, SportCmd, Topic } from "../api/types.ts"
+import process from "node:process"
 
 async function main() {
     const args = process.argv.slice(2)

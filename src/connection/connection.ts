@@ -1,5 +1,5 @@
-import { Module } from "../core"
-import { Msg, MsgType } from "../api/types"
+import { Module } from "../core.ts"
+import { Msg, MsgType } from "../api/types.ts"
 
 // Define connection events based on webrtc.ts usage
 export type ConnectionEvents = {

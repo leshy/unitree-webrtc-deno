@@ -1,6 +1,6 @@
-import { Env } from "../../core"
-import * as webrtc from "./webrtc"
-import { remote_signaling } from "../signaling/remoteSignaling"
+import { Env } from "../../core.ts"
+import * as webrtc from "./webrtc.ts"
+import { remote_signaling } from "../signaling/remoteSignaling.ts"
 
 export class Webrtc extends webrtc.Webrtc {
     constructor(

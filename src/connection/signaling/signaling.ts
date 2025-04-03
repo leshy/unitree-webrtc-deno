@@ -1,7 +1,6 @@
-import { RTCSessionDescription } from "@roamhq/wrtc"
-import * as types from "./types"
-import * as unitreeCrypto from "./unitreeCrypto"
-import * as pino from "pino"
+import * as types from "./types.ts"
+import * as unitreeCrypto from "./unitreeCrypto.ts"
+import * as pino from "npm:pino"
 
 function calc_local_path_ending(data1: string): string {
     // Initialize an array of strings

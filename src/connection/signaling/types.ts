@@ -1,4 +1,4 @@
-import * as pino from "pino"
+import * as pino from "npm:pino"
 
 export type SignalingFunction = (
     ip: string,

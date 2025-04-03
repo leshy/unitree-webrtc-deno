@@ -1,0 +1,30 @@
+{
+    "nodeModulesDir": "auto",
+    "tasks": {
+        "test": "deno run -A src/examples/test.ts",
+        "check": "deno lint --fix && deno fmt",
+        "full-check": "deno lint --fix && deno fmt && deno check src/mod.ts"
+    },
+    "imports": {
+    },
+    "lint": {
+        "rules": {
+            "exclude": [
+                "require-await",
+                "ban-ts-comment",
+                "no-explicit-any",
+                "ban-types"
+            ]
+        },
+        "exclude": ["src/connection/signaling/AES.ts"]
+    },
+    "fmt": {
+        "indentWidth": 4,
+        "useTabs": false,
+        "semiColons": false
+    },
+
+    "compilerOptions": {
+        "lib": ["dom", "deno.ns"]
+    }
+}

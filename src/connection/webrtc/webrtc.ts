@@ -1,17 +1,18 @@
-import { Connection } from "../mod"
-import { Env } from "../../core"
-import { Msg, MsgType, ValidationMsg } from "../../api/types"
-import { SignalingFunction } from "../signaling/types"
+import { Connection } from "../mod.ts"
+import { Env } from "../../core.ts"
+import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
+import { SignalingFunction } from "../signaling/types.ts"
+import { remote_signaling } from "../signaling/remoteSignaling.ts"
+import { Either } from "../../types.ts"
 //@ts-ignore
-import md5 from "md5"
+import md5 from "npm:md5"
 
 export type ConfigRequired = {
     ip: string
-}
+} & Either<{ signalingUrl: string }, { signaling: SignalingFunction }>
 
 export type ConfigOptional = {
     autoconnect: boolean
-    signalingFunction: SignalingFunction
     token?: string
 }
 
@@ -34,28 +35,25 @@ function md5b64(targetString: string): string {
     return btoa(binary)
 }
 
-export abstract class Webrtc
-    extends Connection<ConfigOptional, ConfigRequired> {
+export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
     public pc: RTCPeerConnection
     private channel: RTCDataChannel
     constructor(
-        private polyfill: EnvPolyfill,
         config: WebrtcConfig,
         env?: Env,
     ) {
-        super(config, {
-            autoconnect: true,
-            signalingFunction: polyfill.signalingFunction,
-        }, env)
+        super(config, { autoconnect: true }, env)
 
-        // @ts-ignore
-        this.pc = new polyfill.rtcPeerConnection()
+        this.pc = new RTCPeerConnection()
 
         this.pc.addTransceiver("video", { direction: "recvonly" })
         this.pc.addTransceiver("audio", { direction: "sendrecv" })
 
         this.channel = this.pc.createDataChannel("data")
 
+        if (this.config.signalingUrl) {
+            this.config.signaling = remote_signaling(this.config.signalingUrl)
+        }
         if (this.config.autoconnect) this.connect()
     }
 
@@ -100,6 +98,7 @@ export abstract class Webrtc
 
         this.channel.onmessage = (event: MsgEvent) => {
             //this.log.debug(event, "Data channel event received")
+            console.log(event)
             const msg: Msg<MsgType, unknown> = JSON.parse(event.data)
             if (msg.type != "heartbeat") {
                 console.log("<<<<", JSON.stringify(msg))
@@ -152,7 +151,7 @@ export abstract class Webrtc
     private async handshake(
         sdp: RTCSessionDescription,
     ): Promise<RTCSessionDescriptionInit> {
-        return await this.config.signalingFunction(
+        return await remote_signaling(this.config.signalingServer)(
             this.config.ip,
             this.config.token
                 ? { ...sdp, token: this.config.token } as RTCSessionDescription

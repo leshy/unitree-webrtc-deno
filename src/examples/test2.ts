@@ -1,6 +1,8 @@
 import { API } from "../api/api"
 import { Webrtc } from "../connection/webrtc/webrtcNode"
-import { Color, SportCmd, Topic, VUICmd } from "../api/types"
+// Import only what's needed
+import "../api/types"
+import process from "node:process"
 
 async function main() {
     const args = process.argv.slice(2)

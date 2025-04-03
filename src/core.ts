@@ -1,5 +1,5 @@
-import { EventEmitter2 } from "eventemitter2"
-import * as pino from "pino"
+import EventEmitter2 from "npm:eventemitter2"
+import * as pino from "npm:pino"
 
 // web bundler will flip this boolean
 export const runningInBrowser = false
