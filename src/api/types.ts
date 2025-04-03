@@ -79,6 +79,7 @@ export const ResponseMap = {
 export enum SportCmd {
     Damp = 1001,
     BalanceStand = 1002,
+    BalanceAvoid = 1048,
     StopMove = 1003,
     StandUp = 1004,
     StandDown = 1005,

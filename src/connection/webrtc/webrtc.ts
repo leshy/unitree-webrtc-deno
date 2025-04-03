@@ -65,7 +65,7 @@ export abstract class Webrtc
     }
 
     public async send(msg: Msg<unknown, unknown>) {
-        if (msg.type != "heartbeat") console.log(">>>>", msg)
+        if (msg.type != "heartbeat") console.log(">>>>", JSON.stringify(msg))
         this.channel.send(JSON.stringify(msg))
     }
 
@@ -101,8 +101,9 @@ export abstract class Webrtc
         this.channel.onmessage = (event: MsgEvent) => {
             //this.log.debug(event, "Data channel event received")
             const msg: Msg<MsgType, unknown> = JSON.parse(event.data)
-            if (msg.type != "heartbeat") console.log("<<<<", msg)
-            console.log(msg.data)
+            if (msg.type != "heartbeat") {
+                console.log("<<<<", JSON.stringify(msg))
+            }
             this.log.info(msg, "Message received")
             const msgType = MsgType[msg.type]
             if (msgType) {

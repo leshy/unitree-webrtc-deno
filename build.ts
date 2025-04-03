@@ -4,7 +4,7 @@ import * as esbuild from "esbuild"
 const commonOptions: esbuild.BuildOptions = {
   entryPoints: ["src/examples/browser/signalingClient.ts"],
   bundle: true,
-  minify: true,
+  minify: false,
   sourcemap: true,
   tsconfig: "tsconfig.json",
   loader: {

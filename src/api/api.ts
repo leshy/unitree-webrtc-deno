@@ -101,8 +101,15 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     }
 
     enableVideo() {
-        this.cmd(types.Topic.VIDEO, "ON")
-        //{"type":"vid","topic":"","data":"on"}
+        this.send({ "type": "vid", "topic": "", "data": "on" })
+    }
+
+    subscribe(topic: types.Topic) {
+        this.cmd({ topic, type: types.MsgType.subscribe })
+    }
+
+    unsubscribe(topic: types.Topic) {
+        this.cmd({ topic, type: types.MsgType.unsubscribe })
     }
 
     lidarOff() {
@@ -111,6 +118,18 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
 
     lidarOn() {
         return this.cmd(types.Topic.ULIDAR_SWITCH, "ON")
+    }
+
+    balanceStand() {
+        return this.req(types.Topic.SPORT_MOD, types.SportCmd.BalanceStand)
+    }
+
+    balanceAvoid() {
+        return this.req(
+            types.Topic.SPORT_MOD,
+            types.SportCmd.BalanceAvoid,
+            { data: true },
+        )
     }
 
     standup() {
