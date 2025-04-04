@@ -8,5 +8,4 @@ yarn-error.log*
 .eslintcache
 dist/
 *.js
-*.d.ts
 tmp/

@@ -1,3 +1,4 @@
+// @ts-types="./eventemitter2.d.ts"
 import EventEmitter2 from "npm:eventemitter2@6.4.9"
 import * as pino from "npm:pino@9.6.0"
 
