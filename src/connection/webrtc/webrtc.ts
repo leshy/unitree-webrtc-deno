@@ -1,7 +1,10 @@
 import { Connection } from "../mod.ts"
 import type { Env } from "../../core.ts"
 import { type Msg, MsgType, type ValidationMsg } from "../../api/types.ts"
-import { SignalingFunction, signalingProxyClient } from "./signaling/mod.ts"
+import {
+    type SignalingFunction,
+    signalingProxyClient,
+} from "./signaling/mod.ts"
 
 //@ts-ignore
 import md5 from "npm:md5"

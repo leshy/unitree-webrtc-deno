@@ -14,10 +14,11 @@
                 "require-await",
                 "ban-ts-comment",
                 "no-explicit-any",
-                "ban-types"
+                "ban-types",
+                "no-slow-types"
             ]
         },
-        "exclude": ["src/connection/signaling/AES.ts"]
+        "exclude": ["./src/connection/webrtc/signaling/AES.ts"]
     },
     "fmt": {
         "indentWidth": 4,
@@ -26,8 +27,8 @@
     },
 
     "compilerOptions": {
-        "lib": ["dom", "deno.ns"]
+        "lib": ["dom", "deno.ns"],
+        "noImplicitAny": false
     },
     "license": "MIT"
-    
 }
