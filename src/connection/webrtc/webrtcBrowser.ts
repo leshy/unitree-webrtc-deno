@@ -1,4 +1,4 @@
-import { Env } from "../../core.ts"
+import type { Env } from "../../core.ts"
 import * as webrtc from "./webrtc.ts"
 import { remote_signaling } from "../signaling/remoteSignaling.ts"
 

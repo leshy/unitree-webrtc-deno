@@ -1,7 +1,7 @@
 import { Connection } from "../mod.ts"
-import { Env } from "../../core.ts"
-import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
-import { SignalingFunction } from "../signaling/types.ts"
+import type { Env } from "../../core.ts"
+import { type Msg, MsgType, type ValidationMsg } from "../../api/types.ts"
+import type { SignalingFunction } from "../signaling/types.ts"
 import { remote_signaling } from "../signaling/remoteSignaling.ts"
 
 //@ts-ignore

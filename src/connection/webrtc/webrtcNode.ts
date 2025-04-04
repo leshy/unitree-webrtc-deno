@@ -1,4 +1,4 @@
-import { Env } from "../../core.ts"
+import type { Env } from "../../core.ts"
 import * as webrtc from "./webrtc.ts"
 import { send_sdp_to_local_peer_new_method } from "../signaling/signaling.ts"
 

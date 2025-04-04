@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Path module not used
 import * as signaling from "../../connection/signaling/mod.ts"
-import { Env, Module } from "../../core.ts"
+import { type Env, Module } from "../../core.ts"
 import express from "npm:express"
 import bodyParser from "npm:body-parser"
 import process from "node:process"

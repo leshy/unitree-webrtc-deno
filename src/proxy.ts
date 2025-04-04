@@ -1,8 +1,8 @@
-import { Env } from "./core.ts"
-import { AnyConnection, Connection } from "./connection/mod.ts"
-import { Msg } from "./api/types.ts"
+import type { Env } from "./core.ts"
+import { type AnyConnection, Connection } from "./connection/mod.ts"
+import type { Msg } from "./api/types.ts"
 import { WebSocket, WebSocketServer } from "ws"
-import { Buffer } from "node:buffer"
+import type { Buffer } from "node:buffer"
 
 export type ConfigRequired = {
     connection: AnyConnection

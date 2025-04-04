@@ -1,10 +1,14 @@
-import EventEmitter2 from "npm:eventemitter2"
-import * as pino from "npm:pino"
+import { EventEmitter2 } from "npm:eventemitter2@6.4.9"
+import * as pino from "npm:pino@9.6.0"
 
 // web bundler will flip this boolean
 export const runningInBrowser = false
 
-export const initEnv = () => {
+export type Env = {
+    logger: pino.Logger
+}
+
+export const initEnv = (): Env => {
     const pinoConfig = {
         level: "debug",
     }
@@ -17,10 +21,6 @@ export const initEnv = () => {
     return {
         logger: pino.pino(pinoConfig),
     }
-}
-
-export type Env = {
-    logger: pino.Logger
 }
 
 export abstract class Module<

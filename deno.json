@@ -1,4 +1,7 @@
 {
+    "name": "@lesh/go2-webrtc-deno",
+    "version": "0.0.1",
+    "exports": "./src/core.ts",
     "nodeModulesDir": "auto",
     "tasks": {
         "test": "deno run -A src/examples/test.ts",
@@ -24,5 +27,7 @@
 
     "compilerOptions": {
         "lib": ["dom", "deno.ns"]
-    }
+    },
+    "license": "MIT"
+    
 }

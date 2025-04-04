@@ -1,5 +1,5 @@
-import * as types from "./types.ts"
-import * as pino from "npm:pino"
+import type * as types from "./types.ts"
+import type * as pino from "npm:pino"
 
 export function remote_signaling(
     signalingServerUrl: string,

@@ -1,6 +1,6 @@
-import * as types from "./types.ts"
+import type * as types from "./types.ts"
 import * as unitreeCrypto from "./unitreeCrypto.ts"
-import * as pino from "npm:pino"
+import type * as pino from "npm:pino"
 
 function calc_local_path_ending(data1: string): string {
     // Initialize an array of strings
