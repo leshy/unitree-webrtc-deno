@@ -1,7 +1,7 @@
 import type * as types from "./types.ts"
 import type * as pino from "npm:pino"
 
-export function remote_signaling(
+export function signalingProxyClient(
     signalingServerUrl: string,
 ): types.SignalingFunction {
     return async (ip: string, sdp: RTCSessionDescription, log: pino.Logger) => {

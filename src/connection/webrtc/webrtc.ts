@@ -1,8 +1,7 @@
 import { Connection } from "../mod.ts"
 import type { Env } from "../../core.ts"
 import { type Msg, MsgType, type ValidationMsg } from "../../api/types.ts"
-import type { SignalingFunction } from "../signaling/types.ts"
-import { remote_signaling } from "../signaling/remoteSignaling.ts"
+import { SignalingFunction, signalingProxyClient } from "./signaling/mod.ts"
 
 //@ts-ignore
 import md5 from "npm:md5"
@@ -150,7 +149,7 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
         sdp: RTCSessionDescription,
     ): Promise<RTCSessionDescriptionInit> {
         if (typeof this.config.signaling === "string") {
-            this.config.signaling = remote_signaling(this.config.signaling)
+            this.config.signaling = signalingProxyClient(this.config.signaling)
         }
 
         return await this.config.signaling(

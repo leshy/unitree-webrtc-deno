@@ -1,7 +1,7 @@
 {
     "name": "@lesh/go2-webrtc-deno",
     "version": "0.0.1",
-    "exports": "./src/core.ts",
+    "exports": "./src/mod.ts",
     "nodeModulesDir": "auto",
     "tasks": {
         "test": "deno run -A src/examples/test.ts",

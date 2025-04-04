@@ -1,4 +1,4 @@
-import { EventEmitter2 } from "npm:eventemitter2@6.4.9"
+import EventEmitter2 from "npm:eventemitter2@6.4.9"
 import * as pino from "npm:pino@9.6.0"
 
 // web bundler will flip this boolean
