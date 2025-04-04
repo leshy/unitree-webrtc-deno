@@ -10,13 +10,13 @@ function calc_local_path_ending(data1: string): string {
     const last10Chars = data1.substring(data1.length - 10)
 
     // Split the last 10 characters into chunks of size 2
-    const chunked = []
+    const chunked: string[] = []
     for (let i = 0; i < last10Chars.length; i += 2) {
         chunked.push(last10Chars.substring(i, i + 2))
     }
 
     // Initialize an empty array to store indices
-    const arrayList = []
+    const arrayList: number[] = []
 
     // Iterate over the chunks and find the index of the second character in strArr
     for (const chunk of chunked) {
