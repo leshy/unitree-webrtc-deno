@@ -44,6 +44,9 @@ export abstract class Module<
         // if unified environment is not provided, class will initialize it's own
         this.env = env ? env : initEnv()
         this.config = { ...this.defaultConfig, ...config }
+        console.log("THIS ENV", env)
+        console.log("THIS CONFIG", this.config)
+
         this.log = this.env.logger.child({ module: this.constructor.name })
     }
 }

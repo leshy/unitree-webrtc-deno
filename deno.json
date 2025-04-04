@@ -18,7 +18,7 @@
                 "no-slow-types"
             ]
         },
-        "exclude": ["./src/connection/webrtc/signaling/AES.ts"]
+        "exclude": ["src/connection/webrtc/signaling/AES.ts"]
     },
     "fmt": {
         "indentWidth": 4,

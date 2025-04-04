@@ -21,12 +21,7 @@ export type ConfigOptional = {
 
 export type Config = ConfigRequired & Partial<ConfigOptional>
 
-type MsgEvent = { data: string }
-
-export type EnvPolyfill = {
-    rtcPeerConnection: RTCPeerConnection
-    signalingFunction: SignalingFunction
-}
+type MsgEvent = { data: string | ArrayBuffer }
 
 function md5b64(targetString: string): string {
     const hexString = md5(targetString)
@@ -97,13 +92,15 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
         }
 
         this.channel.onmessage = (event: MsgEvent) => {
-            //this.log.debug(event, "Data channel event received")
-            console.log(event)
+            if (event.data instanceof ArrayBuffer) {
+                return this.emit("lidar", event.data)
+            }
+
             const msg: Msg<MsgType, unknown> = JSON.parse(event.data)
             if (msg.type != "heartbeat") {
                 console.log("<<<<", JSON.stringify(msg))
+                this.log.info(msg, "Message received")
             }
-            this.log.info(msg, "Message received")
             const msgType = MsgType[msg.type]
             if (msgType) {
                 this.emit(msgType, msg)

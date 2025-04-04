@@ -795,7 +795,7 @@ export class AES {
     private opt = {
         mode: "cbc",
         iv: new Uint8Array(16),
-        padding: "pkcs5", //暂不支持其他形式的padding
+        padding: "pkcs5",
         output: "base64",
     }
 
@@ -810,7 +810,9 @@ export class AES {
                 }
             }
             if (typeof aes.opt.iv === "string") {
-                aes.opt.iv = AES.computeMessage(aes.opt.iv)
+                aes.opt.iv = AES.computeMessage(aes.opt.iv) as Uint8Array<
+                    ArrayBuffer
+                >
             }
         }
         return aes
