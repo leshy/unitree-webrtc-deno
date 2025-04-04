@@ -2,11 +2,9 @@
     "nodeModulesDir": "auto",
     "tasks": {
         "test": "deno run -A src/examples/test.ts",
-        "check": "deno lint --fix && deno fmt",
-        "full-check": "deno lint --fix && deno fmt && deno check src/mod.ts"
+        "check": "deno lint --fix && deno fmt && deno check src/mod.ts"
     },
-    "imports": {
-    },
+    "imports": { "eventemitter2": "npm:eventemitter2@^6.4.9" },
     "lint": {
         "rules": {
             "exclude": [

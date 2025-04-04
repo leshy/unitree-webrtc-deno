@@ -39,4 +39,11 @@ export abstract class Connection<ConfigOptional, ConfigRequired>
     abstract connect(): Promise<void>
 }
 
-export type AnyConnection = Connection<unknown, unknown>
+export interface AnyConnection {
+    send(msg: Msg<unknown, unknown>): void
+    connect(): Promise<void>
+    on(event: string, listener: (...args: any[]) => void): any
+    once(event: string, listener: (...args: any[]) => void): any
+    off(event: string, listener: (...args: any[]) => void): any
+    emit(event: string, ...args: any[]): any
+}

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Path module not used
-import * as signaling from "../../connection/signaling/mod"
-import { Env, Module } from "../../core"
-import express from "express"
-import bodyParser from "body-parser"
+import * as signaling from "../../connection/signaling/mod.ts"
+import { Env, Module } from "../../core.ts"
+import express from "npm:express"
+import bodyParser from "npm:body-parser"
 import process from "node:process"
 
 export type OptionalConfig = {
@@ -67,8 +67,7 @@ export class SignalingServer extends Module<
     }
 }
 
-// Only create server instance if this file is executed directly (not imported as a module)
-if (require.main === module) {
+function start() {
     const args = process.argv.slice(2)
     const config: SignalingServerConfig = {}
 
@@ -85,3 +84,5 @@ if (require.main === module) {
 
     new SignalingServer(config)
 }
+
+start()

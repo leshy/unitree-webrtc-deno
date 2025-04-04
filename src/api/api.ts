@@ -34,7 +34,7 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     ready(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.connection.once("connect", () => resolve())
-            this.connection.once("error", (err) => reject(err))
+            this.connection.once("error", (err: Error) => reject(err))
         })
     }
 
@@ -46,7 +46,7 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
     // one shot command, no response expected
     cmd(
         topic: types.Topic,
-        data?: unknown,
+        data?: types.RequestData | string | Record<string, unknown>,
         msgType?: types.MsgType,
     ) {
         const msg: types.Msg<unknown, unknown> = {
@@ -80,10 +80,19 @@ export class API extends Module<OptionalConfig, RequiredConfig> {
                 reject("Timeout")
             }, timeout)
 
-            this.connection.once(String(id), (msg) => {
-                clearTimeout(errorTimeout)
-                resolve(msg.data)
-            })
+            this.connection.once(
+                String(id),
+                (msg: types.Msg<unknown, unknown>) => {
+                    clearTimeout(errorTimeout)
+                    // Create a default response message if msg.data is undefined
+                    const responseData: types.Msg<unknown, unknown> = {
+                        type: types.MsgType.res,
+                        topic,
+                        data: msg.data,
+                    }
+                    resolve(responseData)
+                },
+            )
             this.send(msg)
         })
     }

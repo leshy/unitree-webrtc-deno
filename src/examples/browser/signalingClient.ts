@@ -1,5 +1,5 @@
-import { Webrtc } from "../../connection/webrtc/webrtcBrowser"
-import { API } from "../../api/api"
+import { Webrtc } from "../../connection/webrtc/webrtc.ts"
+import { API } from "../../api/api.ts"
 
 async function main() {
     await new Promise((resolve) => {

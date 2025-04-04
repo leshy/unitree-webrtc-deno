@@ -1,47 +1,51 @@
-import * as esbuild from "esbuild"
+import * as esbuild from "npm:esbuild"
+import { denoPlugins } from "jsr:@luca/esbuild-deno-loader"
+import type { BuildOptions } from "npm:esbuild"
 
-// Common build options
-const commonOptions: esbuild.BuildOptions = {
-    entryPoints: ["src/examples/browser/signalingClient.ts"],
+const args = Deno.args
+const watchMode = args.includes("--watch")
+
+const buildOptions: BuildOptions = {
+    plugins: [...denoPlugins()],
+    conditions: ["browser", "deno", "node"],
+    entryPoints: [
+        "./src/examples/browser/signalingClient.ts",
+    ],
+    outfile: "./static/js/clientside.js",
     bundle: true,
-    minify: false,
-    sourcemap: true,
-    tsconfig: "tsconfig.json",
-    loader: {
-        ".ts": "ts",
+    format: "esm",
+    target: ["es2020"],
+    define: {
+        "import.meta.url": '""',
+        "import.meta": "false",
     },
 }
 
-// Build for Browser
-async function buildBrowser() {
+async function build() {
     try {
-        await esbuild.build({
-            ...commonOptions,
-            outfile: "src/examples/browser/static/signalingClient.js",
-            platform: "browser",
-            format: "iife",
-            define: {
-                "runningInBrowser": "true",
-                "global": "window", // Handle cases where code might reference global
-            },
-            // Mark Node-specific packages as external
-            external: [
-                "@roamhq/wrtc",
-                "pino/file",
-                //        "node-forge",
-            ],
-            // No need for aliases since browsers have native WebRTC support
-        })
-        console.log("[SUCCESS] Browser build complete")
+        const timestamp = new Date().toLocaleTimeString()
+        await esbuild.build(buildOptions)
+        console.log(`[${timestamp}] Build completed successfully`)
     } catch (error) {
-        console.error("[ERROR] Browser build failed:", error)
+        console.error(`Build failed:`, error)
     }
 }
 
-// Process command line arguments to determine which builds to run
-async function build() {
-    console.log("[INFO] Starting build process...")
-    await buildBrowser()
-}
+if (watchMode) {
+    // Use Deno's built-in watch functionality
+    const watcher = Deno.watchFs(["./src"], { recursive: true })
 
-build()
+    // Initial build
+    await build()
+    console.log("Watching for changes...")
+
+    for await (const event of watcher) {
+        if (["create", "modify"].includes(event.kind)) {
+            console.log(`Changes detected in ${event.paths}`)
+            await build()
+        }
+    }
+} else {
+    await build()
+    esbuild.stop()
+}

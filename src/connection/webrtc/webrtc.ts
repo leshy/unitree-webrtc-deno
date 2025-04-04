@@ -3,13 +3,14 @@ import { Env } from "../../core.ts"
 import { Msg, MsgType, ValidationMsg } from "../../api/types.ts"
 import { SignalingFunction } from "../signaling/types.ts"
 import { remote_signaling } from "../signaling/remoteSignaling.ts"
-import { Either } from "../../types.ts"
+
 //@ts-ignore
 import md5 from "npm:md5"
 
 export type ConfigRequired = {
     ip: string
-} & Either<{ signalingUrl: string }, { signaling: SignalingFunction }>
+    signaling: SignalingFunction | string
+}
 
 export type ConfigOptional = {
     autoconnect: boolean
@@ -51,9 +52,6 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
 
         this.channel = this.pc.createDataChannel("data")
 
-        if (this.config.signalingUrl) {
-            this.config.signaling = remote_signaling(this.config.signalingUrl)
-        }
         if (this.config.autoconnect) this.connect()
     }
 
@@ -151,7 +149,11 @@ export class Webrtc extends Connection<ConfigOptional, ConfigRequired> {
     private async handshake(
         sdp: RTCSessionDescription,
     ): Promise<RTCSessionDescriptionInit> {
-        return await remote_signaling(this.config.signalingServer)(
+        if (typeof this.config.signaling === "string") {
+            this.config.signaling = remote_signaling(this.config.signaling)
+        }
+
+        return await this.config.signaling(
             this.config.ip,
             this.config.token
                 ? { ...sdp, token: this.config.token } as RTCSessionDescription
